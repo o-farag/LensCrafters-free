@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { Stack, Typography } from '@mui/material';
+import { Text } from '@mantine/core';
 
 export function GLTFViewer() {
     return (
-        <Stack>
-            <Typography variant="body1">Place viewer here</Typography>
-        </Stack>
+        <div>
+            <Text size='xl'>Place viewer here</Text>
+        </div>
     );
 }
