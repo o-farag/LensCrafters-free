@@ -27,7 +27,7 @@ export function HomePage() {
       }, []);
 
     const renderHomePage = () => {
-        return <GLTFViewer />
+        return <GLTFViewer style={{ height: '50%' }}/>
     }
 
     return (
