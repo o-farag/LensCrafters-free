@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Modal, Text, Stack, Button, Flex } from '@mantine/core';
 import { IconView360 } from '@tabler/icons-react';
-import BoomBox from '../resources/BoomBox.glb';
+import NewWayfarerRayban from '../resources/new_wayfarer_rayban.glb';
 import '@google/model-viewer/dist/model-viewer';
 
 export function VisualizeOptionsPage() {
@@ -16,7 +16,7 @@ export function VisualizeOptionsPage() {
             <Modal opened={opened3D} onClose={() => setOpened3D(false)} size='70em' radius='1' padding='0'>
                 {
                     <Stack padding='0' gap='0'>
-                        <model-viewer style={model_viewer_style} src={BoomBox} camera-controls auto-rotate />
+                        <model-viewer style={model_viewer_style} src={NewWayfarerRayban} camera-controls auto-rotate />
                         <Flex align='center' justify='space-between' bg='#FBF6E9' h='4em' w='100%' gap='sm' px='1em'>
                             <Text size='sm' fs='italic' padding='1em'>Lens material:</Text>
                             <Flex align='center' gap='md'>
@@ -27,7 +27,7 @@ export function VisualizeOptionsPage() {
                     </Stack>
                 }
             </Modal>
-            <Flex justify='center' align='center'>
+            <Flex mr='2em' justify='flex-end' align='bottom'>
                 <Button variant='outline' leftSection={<IconView360 size={14} />} onClick={() => setOpened3D(true)}>View</Button>
             </Flex>
         </>
