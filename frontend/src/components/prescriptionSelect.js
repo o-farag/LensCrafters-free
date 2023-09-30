@@ -13,15 +13,18 @@ function fillSphData(isPositive) {
 const positiveSph = fillSphData(true);
 const negativeSph = fillSphData(false);
 
-export function PrescriptionSelect() {
+export function PrescriptionSelect(props) {
     return (
-        <Select 
-        pt='0.5em'
-            searchable label=''
+        <Select
+            pt='0.5em'
+            searchable
+            label=''
             data={[
                 { group: '+', items: positiveSph },
                 { group: '-', items: negativeSph },
             ]}
-            placeholder='0.00' />
+            placeholder='0.00'
+            onChange={(value) => props.setData(value)}
+        />
     );
 }

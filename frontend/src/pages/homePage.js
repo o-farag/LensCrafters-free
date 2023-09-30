@@ -7,30 +7,36 @@ import { PrescriptionSelect } from '../components/prescriptionSelect';
 import { AxisInput } from '../components/axisInput';
 export function HomePage() {
 
-  /*
-  const [data, setData] = React.useState({
-    name: ''
-  });
 
-  React.useEffect(() => {
-    // Using fetch to fetch the api from
-    // flask server it will be redirected to proxy
-    fetch('/data').then((res) =>
-      res.json().then((data) => {
-        // Setting a data from api
-        setData({
-          name: data.Name
-        });
-      })
-    );
-  }, []);
-*/
+  const [sphOD, setSphOD] = React.useState('0.00');
+  const [cylOD, setCylOD] = React.useState('0.00');
+  const [axisOD, setAxisOD] = React.useState('0.00');
+  const [sphOS, setSphOS] = React.useState('0.00');
+  const [cylOS, setCylOS] = React.useState('0.00');
+  const [axisOS, setAxisOS] = React.useState('0.00');
+  const [pd, setPD] = React.useState(63);
+
   const backgroundStyle = {
     backgroundImage: `url(${metal_frames})`,
     backgroundSize: '50% auto',
     backgroundPosition: 'right 0 top 2em',
     backgroundRepeat: 'no-repeat'
   };
+
+  async function handleContinue() {
+    const prescription = JSON.stringify({ SPH_OD: sphOD, SPH_OS: sphOS, CYL_OD: cylOD, CYL_OS: cylOS, AXIS_OD: axisOD, AXIS_OS: axisOS, PD: pd });
+    const response = await fetch("http://127.0.0.1:5100/prescription", {
+      method: "POST",
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: prescription
+    })
+    if (response.ok) {
+    }
+  }
+
   const renderHomePage = () => {
     return (
       <div style={backgroundStyle} h='100%'>
@@ -54,22 +60,22 @@ export function HomePage() {
               <Grid.Col span={3}>
                 <Stack gap='0.5em'>
                   <Text fz='md' fw='250'>Sphere (SPH)</Text>
-                  <PrescriptionSelect></PrescriptionSelect>
-                  <PrescriptionSelect></PrescriptionSelect>
+                  <PrescriptionSelect setData={setSphOD}></PrescriptionSelect>
+                  <PrescriptionSelect setData={setSphOS}></PrescriptionSelect>
                 </Stack>
               </Grid.Col>
               <Grid.Col span={3}>
                 <Stack gap='0.5em'>
                   <Text fz='md' fw='250'>Cylinder (CYL)</Text>
-                  <PrescriptionSelect></PrescriptionSelect>
-                  <PrescriptionSelect></PrescriptionSelect>
+                  <PrescriptionSelect setData={setCylOD}></PrescriptionSelect>
+                  <PrescriptionSelect setData={setCylOS}></PrescriptionSelect>
                 </Stack>
               </Grid.Col>
               <Grid.Col span={3}>
                 <Stack gap='0.5em'>
                   <Text fz='md' fw='250'>Axis</Text>
-                  <AxisInput></AxisInput>
-                  <AxisInput></AxisInput>
+                  <AxisInput setData={setAxisOD} sph={sphOD} cyl={cylOD}></AxisInput>
+                  <AxisInput setData={setAxisOS} sph={sphOS} cyl={cylOS}></AxisInput>
                 </Stack>
               </Grid.Col>
             </Grid>
@@ -80,12 +86,13 @@ export function HomePage() {
           <NumberInput
             pt='0.5em'
             label=''
-            w = '10em'
+            w='10em'
             defaultValue={63}
             min={50}
             max={80}
-            placeholder={0} />
-          <Button ml='47em' h='3em' w='10em'>Continue</Button>
+            placeholder={0}
+            onChange={(value) => setPD(value)} />
+          <Button ml='47em' h='3em' w='10em' onClick={handleContinue}>Continue</Button>
           <VisualizeOptionsPage />
         </Flex>
       </div>
