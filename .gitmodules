@@ -1,0 +1,3 @@
+[submodule "backend/blender_script/Opticore"]
+	path = backend/blender_script/Opticore
+	url = https://github.com/CodeFHD/OptiCore.git

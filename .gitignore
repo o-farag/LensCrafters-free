@@ -1,3 +1,6 @@
 /venv
 /backend/__pycache__
+*__pycache__
+*.blend
+*.blend1
 .DS_Store
