@@ -4,9 +4,11 @@
   "private": true,
   "dependencies": {
     "@google/model-viewer": "^3.2.1",
+    "@mantine/carousel": "^7.1.2",
     "@mantine/core": "^7.0.0",
     "@mantine/hooks": "^7.0.0",
     "@tabler/icons-react": "^2.35.0",
+    "embla-carousel-react": "^7.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1"

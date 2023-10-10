@@ -1,4 +1,0 @@
-bpy==3.6.0
-Flask==3.0.0
-Flask_Cors==4.0.0
-numpy==1.26.0
