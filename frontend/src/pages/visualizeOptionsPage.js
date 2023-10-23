@@ -20,7 +20,7 @@ export function VisualizeOptionsPage(props) {
         <>
             <style>{`
                 .mantine-Modal-header {
-                background-color: #f2f1f0 !important;  // using !important to ensure the style is applied
+                background-color: #888888 !important;  // using !important to ensure the style is applied
                 }
             `}</style>
             <Modal opened={opened3D} onClose={() => setOpened3D(false)} size='70em' radius='1' padding='0'>
