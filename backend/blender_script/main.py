@@ -11,15 +11,21 @@ from lens import Lens, LensPrescription, Prescription
 # initialize empty scene and spawn a lens in it with given parameters
 def startup(SPHR, SPHL, frame, PD):
     bpy.app.debug_wm = True
+
     print(SPHR, SPHL)
 
     # spawn a lens pair
     prescription = Prescription(
                    right_eye = LensPrescription(SPHR, 0, 0),
                    left_eye = LensPrescription(SPHL, 0, 0),
-                   pupillary_distance = PD # mm
-    )
+                   pupillary_distance = PD, # mm
+                   index_of_refraction= 1.3
+
     
+
+
+    )
+    bpy.context.scene.render.engine = 'CYCLES'
     prescription.generate_lens_pair(context=bpy.context)
 
     bpy.ops.import_scene.gltf(filepath="backend/models/" + frame + ".glb")
@@ -45,6 +51,7 @@ def startup(SPHR, SPHL, frame, PD):
     # render scene
     # filepath = "./sample.blend"
     # bpy.ops.wm.save_mainfile(filepath=filepath)
+
     return
 
 if __name__ == "__main__":

@@ -21,12 +21,14 @@ class Prescription:
     left_eye: LensPrescription
     right_eye: LensPrescription
     pupillary_distance: float
+    index_of_refraction: float = 1.5 # default ior value of glass
 
     # convert a diopter value to a radius of sphere
-    def convert_diopter_to_radius(self, diopter: float):
-        ior = 1.5 #ior of glass
+    def convert_diopter_to_radius(self, diopter: float, ior: float):
+        ior = ior #ior of glass
         # rearranged eqn for converting radius to diopter
         radius = ((ior - 1))/diopter
+        # print(radius) 
         return radius
 
     # generate lens pair from a given prescription
@@ -35,21 +37,34 @@ class Prescription:
         bridge_dist = self.pupillary_distance/(2*1000)
         lens_radius = 0.03
         center_thickness = 0.005
+        ior = self.index_of_refraction
 
         # left lens
         left_prescription = self.left_eye
         location = [0, bridge_dist + lens_radius, 0]  # y axis is horizontal
-        radius = self.convert_diopter_to_radius(left_prescription.sphere)
+        radius = self.convert_diopter_to_radius(diopter=left_prescription.sphere, 
+                                                ior=ior)
 
-        left_lens = Lens(rad1=radius, rad2=0, location=location, lensradius=lens_radius, centerthickness=center_thickness)
+        left_lens = Lens(rad1=radius, 
+                         rad2=0, 
+                         location=location, 
+                         lensradius=lens_radius, 
+                         centerthickness=center_thickness, 
+                         ior=ior)
         left_lens.add_lens(context=context)
         
         # right lens
         right_prescription = self.right_eye
         location = [0, -bridge_dist - lens_radius, 0]
-        radius = self.convert_diopter_to_radius(right_prescription.sphere)
+        radius = self.convert_diopter_to_radius(diopter=right_prescription.sphere, 
+                                                ior=ior)
         
-        right_lens = Lens(rad1=radius, rad2=0, location=location, lensradius=lens_radius, centerthickness=center_thickness)
+        right_lens = Lens(rad1=radius, 
+                          rad2=0, 
+                          location=location, 
+                          lensradius=lens_radius, 
+                          centerthickness=center_thickness, 
+                          ior=ior)
         right_lens.add_lens(context=context)
 
         lenses = [left_lens, right_lens]
@@ -297,44 +312,68 @@ class Lens():
         bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)
         obj.select_set(state=True)
 
-        #assign material(s)
-        if self.material_name in bpy.data.materials:
-            mat = bpy.data.materials[self.material_name]
+        #assign material(s) using principled bsdf
+        mat = bpy.data.materials.new(name="Lens Material")
+        mat.use_nodes = True
+        node_tree = mat.node_tree
+        nodes = node_tree.nodes
+        bsdf = nodes.get("Principled BSDF")
+
+        # set material params
+        bsdf.inputs["Transmission"].default_value = 1.0
+        bsdf.inputs["IOR"].default_value = self.ior
+        bsdf.inputs['Metallic'].default_value = 0.0
+        bsdf.inputs["Specular"].default_value = 0.0
+        bsdf.inputs["Roughness"].default_value = 0.0
+        bsdf.inputs["Sheen Tint"].default_value  = 0.0
+
+
+        assert(bsdf)
+
+        # add material to object
+        if obj.data.materials:
+            obj.data.materials[0] = mat
+        else:
             obj.data.materials.append(mat)
-        if md:
-            cond2 = self.material_name2 in bpy.data.materials
-            cond3 = self.material_name3 in bpy.data.materials
-        if md and cond2 and cond3:
-            if self.material_name2 in bpy.data.materials:
-                mat2 = bpy.data.materials[self.material_name2]
-                obj.data.materials.append(mat2)
-            if self.material_name3 in bpy.data.materials:
-                mat3 = bpy.data.materials[self.material_name3]
-                obj.data.materials.append(mat3)
-            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-            bpy.ops.mesh.select_all(action='DESELECT')
-            sel_mode = bpy.context.tool_settings.mesh_select_mode
-            bpy.context.tool_settings.mesh_select_mode = [False, False, True]
-            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-            #rear surface (mat3)
-            for i in range(nFacSide):
-                mesh.polygons[i + nFacs3].select=True
-            for i in range(ndFac3):
-                mesh.polygons[i + nFacs2+ nFacSide].select=True
-            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-            bpy.context.tool_settings.mesh_select_mode = sel_mode
-            obj.active_material_index = 2
-            bpy.ops.object.material_slot_assign()
-            bpy.ops.mesh.select_all(action='DESELECT')
-            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-            #middle surface (mat2)
-            for i in range(ndFac2):
-                mesh.polygons[i + nFacs].select=True
-            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-            bpy.context.tool_settings.mesh_select_mode = sel_mode
-            obj.active_material_index = 1
-            bpy.ops.object.material_slot_assign()
-            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+
+        # if self.material_name in bpy.data.materials:
+        #     mat = bpy.data.materials[self.material_name]
+        #     obj.data.materials.append(mat)
+        # if md:
+        #     cond2 = self.material_name2 in bpy.data.materials
+        #     cond3 = self.material_name3 in bpy.data.materials
+        # if md and cond2 and cond3:
+        #     if self.material_name2 in bpy.data.materials:
+        #         mat2 = bpy.data.materials[self.material_name2]
+        #         obj.data.materials.append(mat2)
+        #     if self.material_name3 in bpy.data.materials:
+        #         mat3 = bpy.data.materials[self.material_name3]
+        #         obj.data.materials.append(mat3)
+        #     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        #     bpy.ops.mesh.select_all(action='DESELECT')
+        #     sel_mode = bpy.context.tool_settings.mesh_select_mode
+        #     bpy.context.tool_settings.mesh_select_mode = [False, False, True]
+        #     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        #     #rear surface (mat3)
+        #     for i in range(nFacSide):
+        #         mesh.polygons[i + nFacs3].select=True
+        #     for i in range(ndFac3):
+        #         mesh.polygons[i + nFacs2+ nFacSide].select=True
+        #     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        #     bpy.context.tool_settings.mesh_select_mode = sel_mode
+        #     obj.active_material_index = 2
+        #     bpy.ops.object.material_slot_assign()
+        #     bpy.ops.mesh.select_all(action='DESELECT')
+        #     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        #     #middle surface (mat2)
+        #     for i in range(ndFac2):
+        #         mesh.polygons[i + nFacs].select=True
+        #     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        #     bpy.context.tool_settings.mesh_select_mode = sel_mode
+        #     obj.active_material_index = 1
+        #     bpy.ops.object.material_slot_assign()
+        #     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         #apply smooth shading
         
