@@ -43,7 +43,18 @@ export function LensFrameSelection(props) {
         const separatorIndex = material.lastIndexOf('-');
         const composition = material.slice(0, separatorIndex).trim();
         const refractionIndex = parseFloat(material.slice(separatorIndex + 1));
-        const prescription = JSON.stringify(props.prescription, { COMPOSITION: composition, IOR: refractionIndex, FRAME_ID: frameID });
+
+        const result = {};
+
+        Object.keys(props.prescription)
+        .forEach(key => result[key] = props.prescription[key]);
+        
+        const c = { COMPOSITION: composition, IOR: refractionIndex, FRAME_ID: frameID }; 
+
+        Object.keys(c)
+        .forEach(key => result[key] = c[key]);
+
+        const prescription = JSON.stringify(result);
         const response = await fetch("http://127.0.0.1:5100/prescription", {
             method: "POST",
             mode: 'cors',
@@ -52,7 +63,8 @@ export function LensFrameSelection(props) {
             },
             body: prescription
         })
-        if (response.ok) {  
+        if (response.ok) { 
+             
             props.setCurrentView('visualizeOptions')
         }
     }
