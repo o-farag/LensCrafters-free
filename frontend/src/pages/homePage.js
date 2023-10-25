@@ -17,6 +17,7 @@ export function HomePage() {
   const [axisOS, setAxisOS] = React.useState('0.00');
   const [pd, setPD] = React.useState(63);
   const [currentView, setCurrentView] = React.useState('home');
+  const [prescription, setPrescription] = React.useState({});
 
   const backgroundStyle = {
     backgroundImage: `url(${metal_frames})`,
@@ -26,18 +27,8 @@ export function HomePage() {
   };
 
   async function handleContinue() {
-    const prescription = JSON.stringify({ SPH_OD: sphOD, SPH_OS: sphOS, CYL_OD: cylOD, CYL_OS: cylOS, AXIS_OD: axisOD, AXIS_OS: axisOS, PD: pd });
-    const response = await fetch("http://127.0.0.1:5100/prescription", {
-      method: "POST",
-      mode: 'cors',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: prescription
-    })
-    if (response.ok) {
-      setCurrentView('lensFrameSelection')
-    }
+    setCurrentView('lensFrameSelection')
+    setPrescription({ SPH_OD: sphOD, SPH_OS: sphOS, CYL_OD: cylOD, CYL_OS: cylOS, AXIS_OD: axisOD, AXIS_OS: axisOS, PD: pd });
   }
 
   const renderHomePage = () => {
@@ -103,7 +94,7 @@ export function HomePage() {
           </div>
         )
         case 'lensFrameSelection':
-          return <LensFrameSelection setCurrentView={setCurrentView}></LensFrameSelection>
+          return <LensFrameSelection prescription={prescription} setCurrentView={setCurrentView}></LensFrameSelection>
         case 'visualizeOptions':
           return <VisualizeOptionsPage setCurrentView={setCurrentView}></VisualizeOptionsPage>
     }

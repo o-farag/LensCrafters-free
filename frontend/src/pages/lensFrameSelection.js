@@ -19,19 +19,19 @@ export function LensFrameSelection(props) {
 
     const frames = [
         {
-            id: 1,
+            id: 'ray_ban_round_metal',
             src: round_metal_preview,
             name: 'Ray Ban Round Metal',
             material: 'Metal'
         },
         {
-            id: 2,
+            id: 'ray_ban_wayfarer_ease',
             src: wayfarer_ease_preview,
             name: 'Ray Ban Wayfarer Ease',
             material: 'Propionate'
         },
         {
-            id: 3,
+            id: 'ray_ban_aviator_classic',
             src: aviator_preview,
             name: 'Ray Ban Aviator Classic',
             material: 'Metal'
@@ -43,7 +43,18 @@ export function LensFrameSelection(props) {
         const separatorIndex = material.lastIndexOf('-');
         const composition = material.slice(0, separatorIndex).trim();
         const refractionIndex = parseFloat(material.slice(separatorIndex + 1));
-        const prescription = JSON.stringify({ COMPOSITION: composition, IOR: refractionIndex, FRAME_ID: frameID });
+
+        const result = {};
+
+        Object.keys(props.prescription)
+        .forEach(key => result[key] = props.prescription[key]);
+        
+        const c = { COMPOSITION: composition, IOR: refractionIndex, FRAME_ID: frameID }; 
+
+        Object.keys(c)
+        .forEach(key => result[key] = c[key]);
+
+        const prescription = JSON.stringify(result);
         const response = await fetch("http://127.0.0.1:5100/prescription", {
             method: "POST",
             mode: 'cors',
@@ -52,7 +63,8 @@ export function LensFrameSelection(props) {
             },
             body: prescription
         })
-        if (response.ok) {
+        if (response.ok) { 
+             
             props.setCurrentView('visualizeOptions')
         }
     }
