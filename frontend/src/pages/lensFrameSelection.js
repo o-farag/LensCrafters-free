@@ -1,58 +1,30 @@
 import * as React from 'react';
 import { Header } from '../components/header'
-import { Flex, ActionIcon, Title, Select, Popover, Text, Space, Button } from '@mantine/core';
+import { Flex, ActionIcon, Title, Select, Popover, Text, Space, Button, Loader } from '@mantine/core';
 import { IconChevronLeft, IconHelpCircle } from '@tabler/icons-react';
 import { Carousel } from '@mantine/carousel';
-import round_metal_preview from '../resources/round_metal_preview.png'
-import wayfarer_ease_preview from '../resources/wayfarer_ease_preview.png'
-import aviator_preview from '../resources/aviator_preview.png'
 import { FrameCard } from '../components/frameCard';
 
 
 export function LensFrameSelection(props) {
-    const glassMaterials = ['Crown Glass - 1.52', 'Flint Glass - 1.6'];
-    const plasticMaterials = ['Standard Plastic - 1.5', 'Polycarbonate - 1.59', 'High-index Plastic - 1.57', 'High-index Plastic - 1.67', 'High-index Plastic - 1.74'];
-
-    const [material, setMaterial] = React.useState(plasticMaterials[0]);
-    const [frameID, setFrameID] = React.useState(0);
     const [isValid, setValid] = React.useState(false);
-
-    const frames = [
-        {
-            id: 'ray_ban_round_metal',
-            src: round_metal_preview,
-            name: 'Ray Ban Round Metal',
-            material: 'Metal'
-        },
-        {
-            id: 'ray_ban_wayfarer_ease',
-            src: wayfarer_ease_preview,
-            name: 'Ray Ban Wayfarer Ease',
-            material: 'Propionate'
-        },
-        {
-            id: 'ray_ban_aviator_classic',
-            src: aviator_preview,
-            name: 'Ray Ban Aviator Classic',
-            material: 'Metal'
-        }
-    ]
-
+    const [isLoading, setLoading] = React.useState(false);
 
     async function handleGenerate() {
-        const separatorIndex = material.lastIndexOf('-');
-        const composition = material.slice(0, separatorIndex).trim();
-        const refractionIndex = parseFloat(material.slice(separatorIndex + 1));
+        setLoading(true);
+        const separatorIndex = props.material.lastIndexOf('-');
+        const composition = props.material.slice(0, separatorIndex).trim();
+        const refractionIndex = parseFloat(props.material.slice(separatorIndex + 1));
 
         const result = {};
 
         Object.keys(props.prescription)
-        .forEach(key => result[key] = props.prescription[key]);
-        
-        const c = { COMPOSITION: composition, IOR: refractionIndex, FRAME_ID: frameID }; 
+            .forEach(key => result[key] = props.prescription[key]);
+
+        const c = { COMPOSITION: composition, IOR: refractionIndex, FRAME_ID: props.frameID };
 
         Object.keys(c)
-        .forEach(key => result[key] = c[key]);
+            .forEach(key => result[key] = c[key]);
 
         const prescription = JSON.stringify(result);
         const response = await fetch("http://127.0.0.1:5100/prescription", {
@@ -63,9 +35,10 @@ export function LensFrameSelection(props) {
             },
             body: prescription
         })
-        if (response.ok) { 
-             
+        if (response.ok) {
             props.setCurrentView('visualizeOptions')
+        } else {
+            console.error('An error occurred:', response.statusText);
         }
     }
 
@@ -88,12 +61,12 @@ export function LensFrameSelection(props) {
                         searchable
                         label=''
                         data={[
-                            { group: 'Plastic', items: plasticMaterials },
-                            { group: 'Glass', items: glassMaterials },
+                            { group: 'Plastic', items: props.plasticMaterials },
+                            { group: 'Glass', items: props.glassMaterials },
                         ]}
-                        placeholder={plasticMaterials[0]}
+                        placeholder={props.plasticMaterials[0]}
                         radius='0.25em'
-                        onChange={(value) => setMaterial(value)}></Select>
+                        onChange={(value) => props.setMaterial(value)}></Select>
                     <Popover width={500} position="bottom" withArrow shadow="md">
                         <Popover.Target>
                             <ActionIcon
@@ -103,8 +76,8 @@ export function LensFrameSelection(props) {
                             </ActionIcon>
                         </Popover.Target>
                         <Popover.Dropdown>
-                            <Text size="sm">The index of refraction determines how thin or thick your glasses lenses will be: the higher the index, the thinner the lens. <br/><br/>
-                            When it comes to materials, plastic lenses are generally lighter and more comfortable than glass lenses, while glass lenses tend to be more durable and has better optical clarity.</Text>
+                            <Text size="sm">The index of refraction determines how thin or thick your glasses lenses will be: the higher the index, the thinner the lens. <br /><br />
+                                When it comes to materials, plastic lenses are generally lighter and more comfortable than glass lenses, while glass lenses tend to be more durable and has better optical clarity.</Text>
                         </Popover.Dropdown>
                     </Popover>
                 </Flex>
@@ -119,14 +92,16 @@ export function LensFrameSelection(props) {
                         px='4em'
                         style={{ maxWidth: '75em' }}
                     >
-                        {frames.map((frame) => (
+                        {props.frames.map((frame) => (
                             <Carousel.Slide key={frame.id}>
-                                <FrameCard frame={frame} frames={frames} frameID={frameID} setFrameID={setFrameID} setValid={setValid} />
+                                <FrameCard frame={frame} frames={props.frames} frameID={props.frameID} setFrameID={props.setFrameID} setValid={setValid} />
                             </Carousel.Slide>
                         ))}
                     </Carousel>
                 </Flex>
-                <Button ml='4.5em' mt='2em' h='3em' w='10em' disabled={!isValid} onClick={handleGenerate}>Generate</Button>
+                <Button ml='4.5em' mt='2em' h='3em' w='10em' disabled={!isValid || isLoading} onClick={handleGenerate}>
+                    {isLoading ? <Loader size="xs" /> : 'Generate'}
+                </Button>
                 {!isValid &&
                     <Text size='sm' pl='4.5em' c='gray'>Please select a pair of frames to proceed.</Text>
                 }

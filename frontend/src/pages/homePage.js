@@ -6,6 +6,10 @@ import metal_frames from '../resources/metal_frames.jpeg'
 import { PrescriptionSelect } from '../components/prescriptionSelect';
 import { AxisInput } from '../components/axisInput';
 import { LensFrameSelection } from './lensFrameSelection';
+import round_metal_preview from '../resources/round_metal_preview.png'
+import wayfarer_ease_preview from '../resources/wayfarer_ease_preview.png'
+import aviator_preview from '../resources/aviator_preview.png'
+
 export function HomePage() {
 
 
@@ -18,6 +22,32 @@ export function HomePage() {
   const [pd, setPD] = React.useState(63);
   const [currentView, setCurrentView] = React.useState('home');
   const [prescription, setPrescription] = React.useState({});
+
+  const glassMaterials = ['Crown Glass - 1.52', 'Flint Glass - 1.6'];
+  const plasticMaterials = ['Standard Plastic - 1.5', 'Polycarbonate - 1.59', 'High-index Plastic - 1.57', 'High-index Plastic - 1.67', 'High-index Plastic - 1.74'];
+  const [material, setMaterial] = React.useState(plasticMaterials[0]);
+  const [frameID, setFrameID] = React.useState(0);
+
+  const frames = [
+    {
+      id: 'ray_ban_round_metal',
+      src: round_metal_preview,
+      name: 'Ray Ban Round Metal',
+      material: 'Metal'
+    },
+    {
+      id: 'ray_ban_wayfarer_ease',
+      src: wayfarer_ease_preview,
+      name: 'Ray Ban Wayfarer Ease',
+      material: 'Propionate'
+    },
+    {
+      id: 'ray_ban_aviator_classic',
+      src: aviator_preview,
+      name: 'Ray Ban Aviator Classic',
+      material: 'Metal'
+    }
+  ]
 
   const backgroundStyle = {
     backgroundImage: `url(${metal_frames})`,
@@ -93,10 +123,12 @@ export function HomePage() {
             </Flex>
           </div>
         )
-        case 'lensFrameSelection':
-          return <LensFrameSelection prescription={prescription} setCurrentView={setCurrentView}></LensFrameSelection>
-        case 'visualizeOptions':
-          return <VisualizeOptionsPage setCurrentView={setCurrentView}></VisualizeOptionsPage>
+      case 'lensFrameSelection':
+        return <LensFrameSelection prescription={prescription} setCurrentView={setCurrentView}
+          material={material} setMaterial={setMaterial} plasticMaterials={plasticMaterials} glassMaterials={glassMaterials}
+          frameID={frameID} setFrameID={setFrameID} frames={frames}></LensFrameSelection>
+      case 'visualizeOptions':
+        return <VisualizeOptionsPage prescription={prescription} material={material} frameName={frames.find(frame => frame.id === frameID).name} setCurrentView={setCurrentView}></VisualizeOptionsPage>
     }
   }
 
