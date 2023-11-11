@@ -1,5 +1,9 @@
 # LensCrafters-free
 
+#### Project Requirements
+* Node 16
+* Python 3.10
+
 #### Note on cloning
 Since this repo using submodules, there are a few extra steps to clone it properly
 ```
@@ -13,7 +17,43 @@ $ git submodule init
 $ git submodule update
 ```
 
+#### Steps to Run Locally: 
+1. Install required Python packages: 
+    * Create a Python virtual environment with:
 
-Steps to test: 
-- Start the server by running `python server.py` in the backend directory
-- View the frontend in browser by running `npm start` in the frontend directory, need to run `npm install` first to install required packages
+        ```
+        $ python3 -m venv venv
+        ```
+    * Activate the virtual environment with: 
+
+        ```
+        $ source venv/bin/activate
+        ```
+    * In the root directory, install required packages by running:
+
+        ```
+        $ pip install -r requirements.txt
+        ```
+        * To deactivate the virtual environment:
+
+            ```
+            $ deactivate
+            ```
+
+2. Install required frontend packages: 
+    * Navigate to the frontend directory with:
+
+        ```
+        $ cd frontend/
+        ```
+        Then run:
+        
+        ```
+        $ npm install
+        ``` 
+3. Run the application locally:
+    * Run script in the root directory:
+
+        ```
+        $ ./app
+        ```
