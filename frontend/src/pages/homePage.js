@@ -9,6 +9,7 @@ import { LensFrameSelection } from './lensFrameSelection';
 import round_metal_preview from '../resources/round_metal_preview.png'
 import wayfarer_ease_preview from '../resources/wayfarer_ease_preview.png'
 import aviator_preview from '../resources/aviator_preview.png'
+import '@fontsource/inter';
 
 export function HomePage() {
 
@@ -142,7 +143,7 @@ export function HomePage() {
 
 const theme = createTheme({
   primaryColor: 'muteBlue',
-  fontFamily: 'Inter',
+  fontFamily: 'Inter, sans-serif',
   fontSizes: {
     xs: '0.5em',
     sm: '0.875em',

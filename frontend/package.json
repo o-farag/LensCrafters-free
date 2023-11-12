@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@fontsource/inter": "^5.0.15",
     "@google/model-viewer": "^3.2.1",
     "@mantine/carousel": "^7.1.2",
     "@mantine/core": "^7.0.0",
