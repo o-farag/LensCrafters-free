@@ -25,6 +25,8 @@ class Prescription:
 
     # convert a diopter value to a radius of sphere
     def convert_diopter_to_radius(self, diopter: float, ior: float):
+        if diopter == 0.0:
+            return 0.0
         ior = ior #ior of glass
         # rearranged eqn for converting radius to diopter
         radius = ((ior - 1))/diopter
