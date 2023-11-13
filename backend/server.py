@@ -19,8 +19,6 @@ def home():
 def prescription_input():
     prescription = request.get_json()
     print(prescription)
-    if float(prescription["SPH_OD"]) == 0.0 or float(prescription["SPH_OS"]) == 0.0:
-        return "Invalid Prescription", 400
     subprocess.run(["python3.10", "backend/blender_script/main.py", prescription["SPH_OD"], prescription["SPH_OS"], prescription["FRAME_ID"], str(prescription["PD"])])
     return "Done", 201
 
