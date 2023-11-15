@@ -4,6 +4,7 @@ import { Flex, ActionIcon, Title, Select, Popover, Text, Space, Button, Loader }
 import { IconChevronLeft, IconHelpCircle } from '@tabler/icons-react';
 import { Carousel } from '@mantine/carousel';
 import { FrameCard } from '../components/frameCard';
+import { StepperBar } from '../components/stepperBar';
 
 
 export function LensFrameSelection(props) {
@@ -12,6 +13,7 @@ export function LensFrameSelection(props) {
 
     async function handleGenerate() {
         setLoading(true);
+        props.setActive(2);
         const separatorIndex = props.material.lastIndexOf('-');
         const composition = props.material.slice(0, separatorIndex).trim();
         const refractionIndex = parseFloat(props.material.slice(separatorIndex + 1));
@@ -45,15 +47,19 @@ export function LensFrameSelection(props) {
     return (
         <>
             <Header setCurrentView={props.setCurrentView} />
-            <Flex direction='column' pt='2.5em' pl='3em' pr='10em' gap='1em' >
+            <Flex direction='column' pt='2.5em' pl='3em' pr='13em' gap='1em' >
                 <Flex align='center' gap='1em'>
                     <ActionIcon
                         variant="transparent" color="rgba(0, 0, 0, 1)" size="xl" aria-label="Settings"
-                        onClick={() => props.setCurrentView('home')}>
+                        onClick={() => {
+                            props.setCurrentView('home')
+                            props.setActive(0)
+                        }}>
                         <IconChevronLeft style={{ width: '80%', height: '80%' }} stroke={1.5} />
                     </ActionIcon>
-                    <Title order={2}>Select Lens Material</Title>
+                    <StepperBar active={props.active}></StepperBar>
                 </Flex>
+                <Title order={2} pl='2.5em'>Select Lens Material</Title>
                 <Flex align='center' gap='1em'>
                     <Select
                         pl='3.5em'
@@ -65,6 +71,7 @@ export function LensFrameSelection(props) {
                             { group: 'Glass', items: props.glassMaterials },
                         ]}
                         placeholder={props.plasticMaterials[0]}
+                        value={props.material}
                         radius='0.25em'
                         onChange={(value) => props.setMaterial(value)}></Select>
                     <Popover width={500} position="bottom" withArrow shadow="md">

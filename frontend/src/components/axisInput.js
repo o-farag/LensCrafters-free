@@ -12,6 +12,7 @@ export function AxisInput(props) {
             defaultValue={0}
             min={0} max={180}
             placeholder={0}
+            value={props.data}
             error={!isValid && "The axis value must be between 0 and 180."}
             disabled={(props.sph === '0.00' && props.cyl === '0.00')}
             onChange={(value) => {

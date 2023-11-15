@@ -3,7 +3,7 @@ import { Text, Flex, ActionIcon, Title, Paper, Button, Popover, Table, Divider }
 import { Header } from '../components/header'
 import { IconChevronLeft, IconListCheck } from '@tabler/icons-react';
 import { VisualizeCard } from '../components/visualizeCard';
-
+import { StepperBar } from '../components/stepperBar';
 import '@google/model-viewer/dist/model-viewer';
 
 export function VisualizeOptionsPage(props) {
@@ -43,13 +43,16 @@ export function VisualizeOptionsPage(props) {
             `}</style>
             <Header setCurrentView={props.setCurrentView}></Header>
             <Flex direction='column' pt='2.5em' pl='3em' gap='1em' >
-                <Flex align='center' gap='1em' mr='7em'>
+                <Flex align='center' gap='1em' mr='6em'>
                     <ActionIcon
                         variant='transparent' color='rgba(0, 0, 0, 1)' size='xl' aria-label='Settings'
-                        onClick={() => props.setCurrentView('lensFrameSelection')}>
+                        onClick={() => {
+                            props.setCurrentView('lensFrameSelection')
+                            props.setActive(1)
+                        }}>
                         <IconChevronLeft style={{ width: '80%', height: '80%' }} stroke={1.5} />
                     </ActionIcon>
-                    <Title order={2}>Visualize your glasses</Title>
+                    <StepperBar active={props.active}></StepperBar>
                     <Popover width='25em' position='bottom' withArrow shadow='md' offset={{ mainAxis: 15, crossAxis: -30 }}>
                         <Popover.Target>
                             <Button leftSection={<IconListCheck size={14} />} ml='auto'>View Selection</Button>
@@ -78,6 +81,7 @@ export function VisualizeOptionsPage(props) {
                         </Popover.Dropdown>
                     </Popover>
                 </Flex>
+                <Title order={2} pl='2.5em' mt='1em' >Visualize your glasses</Title>
                 <Flex gap='3em' mx='4em' mt='1em'>
                     <VisualizeCard title='3D Interactive Viewer'
                         description='View the 3D model of the lenses and frames you’ve selected in detail by panning and zooming in the viewer window'

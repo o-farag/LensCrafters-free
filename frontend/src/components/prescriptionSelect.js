@@ -24,6 +24,7 @@ export function PrescriptionSelect(props) {
                 { group: '-', items: negativeSph },
             ]}
             placeholder='0.00'
+            value={props.data}
             onChange={(value) => props.setData(value)}
         />
     );

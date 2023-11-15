@@ -10,6 +10,7 @@ import round_metal_preview from '../resources/round_metal_preview.png'
 import wayfarer_ease_preview from '../resources/wayfarer_ease_preview.png'
 import aviator_preview from '../resources/aviator_preview.png'
 import '@fontsource/inter';
+import { StepperBar } from '../components/stepperBar';
 
 export function HomePage() {
 
@@ -28,6 +29,9 @@ export function HomePage() {
   const plasticMaterials = ['Standard Plastic - 1.5', 'Polycarbonate - 1.59', 'High-index Plastic - 1.57', 'High-index Plastic - 1.67', 'High-index Plastic - 1.74'];
   const [material, setMaterial] = React.useState(plasticMaterials[0]);
   const [frameID, setFrameID] = React.useState(0);
+
+  // stepper state
+  const [active, setActive] = React.useState(0);
 
   const frames = [
     {
@@ -60,6 +64,7 @@ export function HomePage() {
   async function handleContinue() {
     setCurrentView('lensFrameSelection')
     setPrescription({ SPH_OD: sphOD, SPH_OS: sphOS, CYL_OD: cylOD, CYL_OS: cylOS, AXIS_OD: axisOD, AXIS_OS: axisOS, PD: pd });
+    setActive(1)
   }
 
   const renderHomePage = () => {
@@ -69,9 +74,10 @@ export function HomePage() {
         return (
           <div style={backgroundStyle} h='100%'>
             <Header setCurrentView={setCurrentView} />
-            <Flex direction='column' pt='3em' pl='3em' gap='1em' >
+            <Flex direction='column' pt='3em' pl='3em' pr='45%' gap='1em' >
               <Text fz='xl' fw='500'>Discover your ideal lens and frame match today!</Text>
               <Text fz='lg' fs="italic" pt='1.5em'>Get started now:</Text>
+              <StepperBar active={active}></StepperBar>
               <Title order={1}>Prescription</Title>
               <Container ml='0' pl='2em' w='60em' h='auto' justify='flex-start'>
                 <Grid>
@@ -88,22 +94,22 @@ export function HomePage() {
                   <Grid.Col span={3}>
                     <Stack gap='0.5em'>
                       <Text fz='md' fw='250'>Sphere (SPH)</Text>
-                      <PrescriptionSelect setData={setSphOD}></PrescriptionSelect>
-                      <PrescriptionSelect setData={setSphOS}></PrescriptionSelect>
+                      <PrescriptionSelect data={sphOD} setData={setSphOD}></PrescriptionSelect>
+                      <PrescriptionSelect data={sphOS} setData={setSphOS}></PrescriptionSelect>
                     </Stack>
                   </Grid.Col>
                   <Grid.Col span={3}>
                     <Stack gap='0.5em'>
                       <Text fz='md' fw='250'>Cylinder (CYL)</Text>
-                      <PrescriptionSelect setData={setCylOD}></PrescriptionSelect>
-                      <PrescriptionSelect setData={setCylOS}></PrescriptionSelect>
+                      <PrescriptionSelect data={cylOD} setData={setCylOD}></PrescriptionSelect>
+                      <PrescriptionSelect data={cylOS} setData={setCylOS}></PrescriptionSelect>
                     </Stack>
                   </Grid.Col>
                   <Grid.Col span={3}>
                     <Stack gap='0.5em'>
                       <Text fz='md' fw='250'>Axis</Text>
-                      <AxisInput setData={setAxisOD} sph={sphOD} cyl={cylOD}></AxisInput>
-                      <AxisInput setData={setAxisOS} sph={sphOS} cyl={cylOS}></AxisInput>
+                      <AxisInput data={axisOD} setData={setAxisOD} sph={sphOD} cyl={cylOD}></AxisInput>
+                      <AxisInput data={axisOS} setData={setAxisOS} sph={sphOS} cyl={cylOS}></AxisInput>
                     </Stack>
                   </Grid.Col>
                 </Grid>
@@ -118,7 +124,7 @@ export function HomePage() {
                 defaultValue={63}
                 min={50}
                 max={80}
-                placeholder={0}
+                value={pd}
                 onChange={(value) => setPD(value)} />
               <Button mt='2em' h='3em' w='10em' onClick={handleContinue}>Continue</Button>
             </Flex>
@@ -127,9 +133,13 @@ export function HomePage() {
       case 'lensFrameSelection':
         return <LensFrameSelection prescription={prescription} setCurrentView={setCurrentView}
           material={material} setMaterial={setMaterial} plasticMaterials={plasticMaterials} glassMaterials={glassMaterials}
-          frameID={frameID} setFrameID={setFrameID} frames={frames}></LensFrameSelection>
+          frameID={frameID} setFrameID={setFrameID} frames={frames}
+          active={active} setActive={setActive}></LensFrameSelection>
       case 'visualizeOptions':
-        return <VisualizeOptionsPage prescription={prescription} material={material} frameName={frames.find(frame => frame.id === frameID).name} setCurrentView={setCurrentView}></VisualizeOptionsPage>
+        return <VisualizeOptionsPage prescription={prescription} material={material}
+          frameName={frames.find(frame => frame.id === frameID).name}
+          setCurrentView={setCurrentView}
+          active={active} setActive={setActive}></VisualizeOptionsPage>
     }
   }
 
