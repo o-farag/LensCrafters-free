@@ -38,7 +38,7 @@ export function VisualizeOptionsPage(props) {
         <>
             <style>{`
                 .mantine-Modal-header {
-                background-color: #888888 !important;  // using !important to ensure the style is applied
+                background-color: #a7b9cd !important;  // using !important to ensure the style is applied
                 }
             `}</style>
             <Header setCurrentView={props.setCurrentView}></Header>

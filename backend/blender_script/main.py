@@ -28,6 +28,24 @@ def startup(SPHR, SPHL, frame, PD):
     bpy.context.scene.render.engine = 'CYCLES'
     prescription.generate_lens_pair(context=bpy.context)
 
+    # set object names
+    lens_objects = bpy.context.scene.objects[-2:]
+    lens_objects[0].name = "Lens_1"
+    lens_objects[1].name = "Lens_2"
+
+    # Export lens pair
+    # Assuming the lens pair objects are the last ones created
+    lens_objects = [obj for obj in bpy.context.scene.objects if "Lens" in obj.name]
+    for lens in lens_objects:
+        lens.select_set(True)  # Select the lens object
+    bpy.ops.export_scene.gltf(
+        filepath="backend/models/lensOnly.glb",
+        use_selection=True,  # Export only selected objects
+        export_format='GLB',
+        export_yup=True
+    )
+
+    # Import frame model
     bpy.ops.import_scene.gltf(filepath="backend/models/" + frame + ".glb")
     imported_object = bpy.context.selected_objects[0]  # Assuming the imported object is the first selected object
 
