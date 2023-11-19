@@ -38,17 +38,22 @@ class Prescription:
         # currently only supporting spherical power
         bridge_dist = self.pupillary_distance/(2*1000)
         lens_radius = 0.03
-        center_thickness = 0.005
+        center_thickness = 0.01
         ior = self.index_of_refraction
 
         # left lens
         left_prescription = self.left_eye
         location = [0, bridge_dist + lens_radius, 0]  # y axis is horizontal
-        radius = self.convert_diopter_to_radius(diopter=left_prescription.sphere, 
+        sphere_radius = self.convert_diopter_to_radius(diopter=left_prescription.sphere, 
                                                 ior=ior)
+        cylinder_radius = self.convert_diopter_to_radius(diopter=left_prescription.cylinder, ior=ior)
+        cylinder_axis = left_prescription.axis
+        
 
-        left_lens = Lens(rad1=radius, 
-                         rad2=0, 
+        left_lens = Lens(rad1=sphere_radius, 
+                         rad2=0,
+                         cyl1=cylinder_radius,
+                         axis1= cylinder_axis,
                          location=location, 
                          lensradius=lens_radius, 
                          centerthickness=center_thickness, 
@@ -58,11 +63,16 @@ class Prescription:
         # right lens
         right_prescription = self.right_eye
         location = [0, -bridge_dist - lens_radius, 0]
-        radius = self.convert_diopter_to_radius(diopter=right_prescription.sphere, 
+        sphere_radius = self.convert_diopter_to_radius(diopter=right_prescription.sphere, 
                                                 ior=ior)
+        cylinder_radius = self.convert_diopter_to_radius(diopter=right_prescription.cylinder, ior=ior)
+        cylinder_axis = right_prescription.axis
         
-        right_lens = Lens(rad1=radius, 
-                          rad2=0, 
+        
+        right_lens = Lens(rad1=sphere_radius, 
+                          rad2=0,
+                          cyl1=cylinder_radius,
+                          axis1=cylinder_axis, 
                           location=location, 
                           lensradius=lens_radius, 
                           centerthickness=center_thickness, 
@@ -81,9 +91,13 @@ class Lens():
     ltype3: str = 'spherical'
     location: tuple[float] = field(default_factory=lambda: [0, 0, 0])
     rotation: list[float] = field(default_factory=lambda: [0, 0, 0])
-    rad1: float = 12.0 
-    rad2: float = -24.0
+    rad1: float = 12.0  # spherical power front
+    rad2: float = -24.0 # spherical power back
     rad3: float = 24.0
+    cyl1: float = 0.0   # cylindrical power front
+    cyl2: float = 0.0   # cylindrical power back
+    axis1: float = 0.0  # cylinder axis front in degrees
+    axis2: float = 0.0  # cylinder axis back in degrees
     num1: int = 32 
     num2: int = 64
     lensradius: float = 0.3
@@ -306,38 +320,6 @@ class Lens():
         mesh = bpy.data.meshes.new(name="New Lens")
         mesh.from_pydata(verts, edges, faces)
 
-        # create object
-        # obj = object_data_add(context, mesh, operator=self)
-        obj = bpy.data.objects.new(name="New Lens", object_data=mesh)
-        obj.location = self.location
-        obj.rotation_euler = self.rotation
-        bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)
-        obj.select_set(state=True)
-
-        #assign material(s) using principled bsdf
-        mat = bpy.data.materials.new(name="Lens Material")
-        mat.use_nodes = True
-        node_tree = mat.node_tree
-        nodes = node_tree.nodes
-        bsdf = nodes.get("Principled BSDF")
-
-        # set material params
-        bsdf.inputs["Transmission"].default_value = 1.0
-        bsdf.inputs["IOR"].default_value = self.ior
-        bsdf.inputs['Metallic'].default_value = 0.0
-        bsdf.inputs["Specular"].default_value = 0.0
-        bsdf.inputs["Roughness"].default_value = 0.0
-        bsdf.inputs["Sheen Tint"].default_value  = 0.0
-
-
-        assert(bsdf)
-
-        # add material to object
-        if obj.data.materials:
-            obj.data.materials[0] = mat
-        else:
-            obj.data.materials.append(mat)
-
 
         # if self.material_name in bpy.data.materials:
         #     mat = bpy.data.materials[self.material_name]
@@ -494,3 +476,104 @@ class Lens():
             mesh.calc_normals_split()
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
             bpy.ops.mesh.select_all(action='DESELECT')
+
+        # used for moving lens later, and for boolean and remesh modifier
+        obj = bpy.data.objects.new(name="New Lens", object_data=mesh)
+        bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)
+        
+        # use generated mesh for adding cylinder power when power is not 0
+        if self.cyl1 != 0:
+            # create cylinder with radius corresponding to correct cylinder power
+            # cylinder is already object, so no need to set it to variable
+            bpy.ops.mesh.primitive_cylinder_add(
+                            vertices = 512, # need a lot of vertices for smooth curve
+                            radius = abs(self.cyl1), # abs for positive value
+                            end_fill_type = 'TRIFAN'
+            )
+            cyl = bpy.context.selected_objects[0] # already selected after creation
+
+            # cylinder dimensions will be much larger from default creation (height = 1m)
+
+            # align cylinder with middle of lens, align front or back surface
+            offset = self.location # offset for each lens's location
+
+            cyl.location = [-self.cyl1 - self.centerthickness/2, 0, 0] # for now align with back surface
+            
+            cyl.rotation_euler = [np.radians(self.axis1), 0, 0]
+
+            # use boolean modifier with union, then apply modifier
+            bool_mod = obj.modifiers.new(name="Boolean", type='BOOLEAN')
+            bool_mod.operation = 'DIFFERENCE'
+            bool_mod.object = cyl
+            bool_mod.solver = 'EXACT'
+            
+            # remesh modifier for smoother, higher poly lens
+            remesh_mod = obj.modifiers.new(name="Remesh", type='REMESH')
+            remesh_mod.mode = 'SHARP'
+            remesh_mod.octree_depth = 7
+            remesh_mod.scale = 0.99
+
+            # apply modifiers
+            # obj.select_set(True)
+            bpy.context.view_layer.objects.active = obj
+            bpy.ops.object.modifier_apply(modifier="Boolean")
+            bpy.ops.object.modifier_apply(modifier="Remesh")
+
+            # after applying modifiers, move cylinders to align with left/right lens positions
+            cyl.location[0] += offset[0]
+            cyl.location[1] += offset[1]
+            cyl.location[2] += offset[2]
+
+            # delete cylinder
+            bpy.context.view_layer.objects.active = cyl
+            bpy.ops.object.delete()
+
+        
+
+        # move lenses after all generation and mesh manipulation is done
+        # create object
+        # obj = object_data_add(context, mesh, operator=self)
+        obj.location = self.location
+        obj.rotation_euler = self.rotation
+        
+        obj.select_set(state=True)
+
+        #assign material(s) using principled bsdf
+        mat = bpy.data.materials.new(name="Lens Material")
+        mat.use_nodes = True
+        node_tree = mat.node_tree
+        nodes = node_tree.nodes
+        bsdf = nodes.get("Principled BSDF")
+
+        # set material params
+        bsdf.inputs["Transmission"].default_value = 1.0
+        bsdf.inputs["IOR"].default_value = self.ior
+        bsdf.inputs['Metallic'].default_value = 0.0
+        bsdf.inputs["Specular"].default_value = 0.0
+        bsdf.inputs["Roughness"].default_value = 0.0
+        bsdf.inputs["Sheen Tint"].default_value  = 0.0
+
+
+        assert(bsdf)
+
+        # add material to object
+        if obj.data.materials:
+            obj.data.materials[0] = mat
+        else:
+            obj.data.materials.append(mat)    
+
+        # created cylindrical lens by calculating a union between a flat lens
+        # and a cylinder with given parameters
+        # def add_cylindrical_lens(cyl_rad, lrad, N1, N2):
+            # create the lens with correct spherical power
+
+            # create cylinder corresponding to correct cylinder power
+
+            # make cylinder dimensions much larger than lens dimensions
+
+            # align cylinder with middle of lens, align front or back surface
+
+            # use boolean modifier with union, then apply modifier
+
+            # retopologize mesh?
+            # return
