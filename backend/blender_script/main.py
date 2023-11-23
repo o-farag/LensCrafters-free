@@ -58,21 +58,15 @@ def insetLens():
         lenscutter.select_set(False)
 
 # initialize empty scene and spawn a lens in it with given parameters
-def startup(SPHR, SPHL, frame, PD):
+def startup(SPHR, SPHL, CYLR, CYLL, AXISR, AXISL, IOR, frame, PD):
     bpy.app.debug_wm = True
-
-    print(SPHR, SPHL)
 
     # spawn a lens pair
     prescription = Prescription(
-                   right_eye = LensPrescription(SPHR, 0, 0),
-                   left_eye = LensPrescription(SPHL, 0, 0),
+                   right_eye = LensPrescription(SPHR, CYLR, AXISR),
+                   left_eye = LensPrescription(SPHL, CYLL, AXISL),
                    pupillary_distance = PD, # mm
-                   index_of_refraction= 1.3
-
-    
-
-
+                   index_of_refraction= IOR
     )
     bpy.context.scene.render.engine = 'CYCLES'
     prescription.generate_lens_pair(context=bpy.context, radius=bpy.data.objects['max_diameter'].location.x*0.6)
@@ -135,11 +129,20 @@ def startup(SPHR, SPHL, frame, PD):
 
 if __name__ == "__main__":
     print(sys.argv)
-    if len(sys.argv) < 5:
+    if len(sys.argv) < 10:
         print('shouldnt be here')
-        startup(0.5, 0.5, "aviator", 64)
+        startup(0.5, 0.5, 0, 0, 0, 0, 1.5, "aviator", 64)
     else:
-        file_path = "backend/models/"+str(sys.argv[3])+"_inset.blend"
+        file_path = "backend/models/"+str(sys.argv[8])+"_inset.blend"
         bpy.ops.wm.read_factory_settings(use_empty=True)
         bpy.ops.wm.open_mainfile(filepath=file_path)
-        startup(float(sys.argv[1]), float(sys.argv[2]), sys.argv[3], float(sys.argv[4]))
+        startup(float(sys.argv[1]), #SPHR
+                float(sys.argv[2]), #SPHL
+                float(sys.argv[3]), #CYLR
+                float(sys.argv[4]), #CYLL
+                float(sys.argv[5]), #AXISR
+                float(sys.argv[6]), #AXISL
+                float(sys.argv[7]), #IOR
+                sys.argv[8], #frame
+                float(sys.argv[9]) #PD
+                )
