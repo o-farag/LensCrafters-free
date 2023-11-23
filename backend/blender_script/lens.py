@@ -38,7 +38,7 @@ class Prescription:
         # currently only supporting spherical power
         bridge_dist = self.pupillary_distance/(2*1000)
         lens_radius = radius
-        center_thickness = 0.01
+        center_thickness = 0.005
         ior = self.index_of_refraction
 
         # left lens
