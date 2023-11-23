@@ -27,7 +27,7 @@ $ git submodule update
     * Activate the virtual environment with: 
 
         ```
-        $ source venv/bin/activate  // for linux
+        $ source venv/bin/activate  // for UNIX (linux, macOS, etc)
         $ ./venv/Scripts/activate   // for Windows
         ```
     * In the root directory, install required packages by running:
