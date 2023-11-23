@@ -34,10 +34,10 @@ class Prescription:
         return radius
 
     # generate lens pair from a given prescription
-    def generate_lens_pair(self, context):
+    def generate_lens_pair(self, context, radius):
         # currently only supporting spherical power
         bridge_dist = self.pupillary_distance/(2*1000)
-        lens_radius = 0.03
+        lens_radius = radius
         center_thickness = 0.01
         ior = self.index_of_refraction
 
@@ -362,7 +362,7 @@ class Lens():
         #apply smooth shading
         
 
-        if self.shade_smooth:
+        if self.shade_smooth and False:
             bpy.ops.object.shade_smooth()
             mesh.use_auto_smooth = True
             if self.smooth_type: #assign custom normals

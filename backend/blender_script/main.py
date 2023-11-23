@@ -2,11 +2,60 @@ import bpy
 import random
 import sys
 import os
+from math import radians
 # Add the directory containing the 'lens' module to the sys.path
-bpy.ops.wm.read_factory_settings(use_empty=True)
+#bpy.ops.wm.read_factory_settings(use_empty=True)
 module_dir = os.path.dirname(__file__)
 sys.path.append(module_dir)
 from lens import Lens, LensPrescription, Prescription
+
+def insetLens():
+
+    rightLens = bpy.data.objects['Lens_1']
+    leftLens = bpy.data.objects['Lens_2']
+
+    rightLens.location = bpy.data.objects['Right_Eye_Location'].location
+    leftLens.location = bpy.data.objects['Left_Eye_Location'].location
+
+    #rightLens.rotation_euler = bpy.data.objects['Right_Eye_Location'].rotation_euler.copy()
+    rightLens.rotation_euler.x = bpy.data.objects['Right_Eye_Location'].rotation_euler.x 
+    rightLens.rotation_euler.y = bpy.data.objects['Right_Eye_Location'].rotation_euler.y 
+    rightLens.rotation_euler.z = bpy.data.objects['Right_Eye_Location'].rotation_euler.z - radians(90)
+    #leftLens.rotation_euler = bpy.data.objects['Left_Eye_Location'].rotation_euler.copy()
+    leftLens.rotation_euler.x = bpy.data.objects['Left_Eye_Location'].rotation_euler.x 
+    leftLens.rotation_euler.y = bpy.data.objects['Left_Eye_Location'].rotation_euler.y 
+    leftLens.rotation_euler.z = bpy.data.objects['Left_Eye_Location'].rotation_euler.z - radians(90)
+
+    lenses = [rightLens, leftLens]
+    lenscutter = bpy.data.objects['lenscutter']
+
+    for lens in lenses:
+        bpy.context.view_layer.objects.active = lens
+        lens.select_set(True)
+        print(bpy.context.active_object.matrix_world.translation)
+
+# Set the origin to the geometry center
+        bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
+        print(bpy.context.active_object.matrix_world.translation)
+        scale_factor = 1
+        if 'max_diameter' in bpy.data.objects:
+            scale_factor = lens.dimensions.y/bpy.data.objects['max_diameter'].location.x
+            scale_factor *= 1.5;
+        
+        bool_modifier = lens.modifiers.new(name="Boolean", type='BOOLEAN')
+
+        # Set the operation to 'INTERSECT'
+        bool_modifier.operation = 'INTERSECT'
+
+        # Set the target object for the boolean modifier
+        bool_modifier.use_self = False  # This is important to specify that it uses another object
+        bool_modifier.object = lenscutter
+
+        # Apply the boolean modifier
+        bpy.ops.object.modifier_apply({"object": lens}, modifier="Boolean")
+        lenscutter.hide_viewport = True
+        lenscutter.hide_render = True
+        lenscutter.select_set(False)
 
 # initialize empty scene and spawn a lens in it with given parameters
 def startup(SPHR, SPHL, frame, PD):
@@ -26,13 +75,14 @@ def startup(SPHR, SPHL, frame, PD):
 
     )
     bpy.context.scene.render.engine = 'CYCLES'
-    prescription.generate_lens_pair(context=bpy.context)
+    prescription.generate_lens_pair(context=bpy.context, radius=bpy.data.objects['max_diameter'].location.x*0.6)
 
     # set object names
     lens_objects = bpy.context.scene.objects[-2:]
     lens_objects[0].name = "Lens_1"
     lens_objects[1].name = "Lens_2"
 
+    insetLens()
     # Export lens pair
     # Assuming the lens pair objects are the last ones created
     lens_objects = [obj for obj in bpy.context.scene.objects if "Lens" in obj.name]
@@ -46,7 +96,12 @@ def startup(SPHR, SPHL, frame, PD):
     )
 
     # Import frame model
-    bpy.ops.import_scene.gltf(filepath="backend/models/" + frame + ".glb")
+    #bpy.ops.import_scene.gltf(filepath="backend/models/" + frame + ".glb")
+    #bpy.ops.import_scene.gltf(filepath="backend/models/round_metal_test.glb")
+    objects = [obj for obj in bpy.context.scene.objects]
+    for o in objects:
+        #pass
+        print(o)
     imported_object = bpy.context.selected_objects[0]  # Assuming the imported object is the first selected object
 
     # Set the imported object as the active object
@@ -58,10 +113,16 @@ def startup(SPHR, SPHL, frame, PD):
     else:
         print("The imported object is not a mesh.")
 
+    objects = [obj for obj in bpy.context.scene.objects]
+    for o in objects:
+        o.select_set(True)
+
+    bpy.data.objects['lenscutter'].select_set(False)
     filepath = "backend/models/generated.glb"  # Set the desired output file patt
     bpy.ops.export_scene.gltf(
         filepath=filepath,
         export_format='GLB',  # Use 'GLB' format for GLB files
+        use_selection=True,
         export_yup=True,  # Depending on your model orientation, adjust as needed
         export_apply=False,  # Adjust export options as needed
     )
@@ -78,4 +139,7 @@ if __name__ == "__main__":
         print('shouldnt be here')
         startup(0.5, 0.5, "aviator", 64)
     else:
+        file_path = "backend/models/"+str(sys.argv[3])+"_inset.blend"
+        bpy.ops.wm.read_factory_settings(use_empty=True)
+        bpy.ops.wm.open_mainfile(filepath=file_path)
         startup(float(sys.argv[1]), float(sys.argv[2]), sys.argv[3], float(sys.argv[4]))
