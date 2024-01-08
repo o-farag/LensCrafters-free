@@ -5,8 +5,27 @@ import { IconChevronLeft, IconListCheck } from '@tabler/icons-react';
 import { VisualizeCard } from '../components/visualizeCard';
 import { StepperBar } from '../components/stepperBar';
 import '@google/model-viewer/dist/model-viewer';
+import { AppStateContext } from './AppStateContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { respondToBrowserState } from './homePage';
 
 export function VisualizeOptionsPage(props) {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    React.useEffect(() => {
+      setActive(respondToBrowserState(location));
+    });
+
+    const {
+        prescription,
+        material,
+        frameID,
+        active, setActive,
+        frames
+      } = React.useContext(AppStateContext);
+
+    const frameName = frames.find(frame => frame.id === frameID).name;
     const weight = {
         lens: 70,
         frame: 210,
@@ -14,7 +33,7 @@ export function VisualizeOptionsPage(props) {
     }
     const {
         SPH_OD, SPH_OS, CYL_OD, CYL_OS, AXIS_OD, AXIS_OS, PD
-    } = props.prescription;
+    } = prescription;
 
     // Define the table rows
     const rows = [
@@ -41,18 +60,18 @@ export function VisualizeOptionsPage(props) {
                 background-color: #a7b9cd !important;  // using !important to ensure the style is applied
                 }
             `}</style>
-            <Header setCurrentView={props.setCurrentView}></Header>
+            <Header></Header>
             <Flex direction='column' pt='2.5em' pl='3em' gap='1em' >
                 <Flex align='center' gap='1em' mr='6em'>
                     <ActionIcon
                         variant='transparent' color='rgba(0, 0, 0, 1)' size='xl' aria-label='Settings'
                         onClick={() => {
-                            props.setCurrentView('lensFrameSelection')
-                            props.setActive(1)
+                            setActive(1);
+                            navigate('/select-lens-frame');
                         }}>
                         <IconChevronLeft style={{ width: '80%', height: '80%' }} stroke={1.5} />
                     </ActionIcon>
-                    <StepperBar active={props.active}></StepperBar>
+                    <StepperBar active={active}></StepperBar>
                     <Popover width='25em' position='bottom' withArrow shadow='md' offset={{ mainAxis: 15, crossAxis: -30 }}>
                         <Popover.Target>
                             <Button leftSection={<IconListCheck size={14} />} ml='auto'>View Selection</Button>
@@ -74,10 +93,10 @@ export function VisualizeOptionsPage(props) {
                             </Table>
                             <Text fs='italic' mt='2em'>Lens Material</Text>
                             <Divider my=".4em" />
-                            <Text mt='1em' size='0.8em'>{props.material}</Text>
+                            <Text mt='1em' size='0.8em'>{material}</Text>
                             <Text fs='italic' mt='2em'>Frames</Text>
                             <Divider my=".4em" />
-                            <Text mt='1em' size='0.8em'>{props.frameName}</Text>
+                            <Text mt='1em' size='0.8em'>{frameName}</Text>
                         </Popover.Dropdown>
                     </Popover>
                 </Flex>
@@ -85,12 +104,10 @@ export function VisualizeOptionsPage(props) {
                 <Flex gap='3em' mx='4em' mt='1em'>
                     <VisualizeCard title='3D Interactive Viewer'
                         description='View the 3D model of the lenses and frames you’ve selected in detail by panning and zooming in the viewer window'
-                        material={props.material}
-                        frameName={props.frameName}
-                        setCurrentView={props.setCurrentView}></VisualizeCard>
+                        material={material}
+                        frameName={frameName}></VisualizeCard>
                     <VisualizeCard title='Virtual Try-on' description='Try on the lenses and frames you’ve selected virtually'
-                        material={props.material}
-                        setCurrentView={props.setCurrentView}></VisualizeCard>
+                        material={material}></VisualizeCard>
                     <Paper bg='#EAEFF3' radius='xl' w='10%' h='35em' align='center'>
                         <Text fw={700} size='1.2em' pt='4em'>
                             WEIGHT

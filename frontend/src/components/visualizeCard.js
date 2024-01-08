@@ -3,10 +3,12 @@ import { Text, Card, Image, Button, Flex, Modal, Stack, Switch } from '@mantine/
 import { IconView360, IconCamera } from '@tabler/icons-react';
 import viewer_thumbnail from '../resources/viewer_thumbnail.png';
 import try_on_thumbnail from '../resources/try_on_thumbnail.png';
+import { useNavigate } from 'react-router-dom';
 
 export function VisualizeCard(props) {
     const [opened3D, setOpened3D] = React.useState(false);
     const [showFrame, setShowFrame] = React.useState(true);
+    const navigate = useNavigate();
 
     const model_viewer_style = {
         width: 'auto',
@@ -58,7 +60,7 @@ export function VisualizeCard(props) {
                                 <Flex align='center' gap='md'>
                                     <Text size='sm'>{props.frame}</Text>
                                     <Text size='sm' padding='1em'>{props.frameName}</Text>
-                                    <Button variant='light' onClick={() => props.setCurrentView('lensFrameSelection')}>Change Selection</Button>
+                                    <Button variant='light' onClick={() => navigate('/select-lens-frame')}>Change Selection</Button>
                                     <Switch size='xl' onLabel='Show Frames' offLabel='Hide Frames' checked={showFrame} onChange={(event) => setShowFrame(event.currentTarget.checked)} />
                                 </Flex>
                             </Flex>
