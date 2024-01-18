@@ -5,40 +5,58 @@ import { IconChevronLeft, IconHelpCircle } from '@tabler/icons-react';
 import { Carousel } from '@mantine/carousel';
 import { FrameCard } from '../components/frameCard';
 import { StepperBar } from '../components/stepperBar';
+import { AppStateContext } from './AppStateContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { respondToBrowserState } from './homePage';
 
-
-export function LensFrameSelection(props) {
+export function LensFrameSelectionPage(props) {
     const [isValid, setValid] = React.useState(false);
     const [isLoading, setLoading] = React.useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    React.useEffect(() => {
+      setActive(respondToBrowserState(location));
+    });
+
+    const {
+        prescription,
+        material, setMaterial,
+        frameID, setFrameID,
+        active, setActive,
+        glassMaterials,
+        plasticMaterials,
+        frames
+      } = React.useContext(AppStateContext);
 
     async function handleGenerate() {
         setLoading(true);
-        props.setActive(2);
-        const separatorIndex = props.material.lastIndexOf('-');
-        const composition = props.material.slice(0, separatorIndex).trim();
-        const refractionIndex = parseFloat(props.material.slice(separatorIndex + 1));
+        setActive(2);
+        const separatorIndex = material.lastIndexOf('-');
+        const composition = material.slice(0, separatorIndex).trim();
+        const refractionIndex = parseFloat(material.slice(separatorIndex + 1));
 
         const result = {};
 
-        Object.keys(props.prescription)
-            .forEach(key => result[key] = props.prescription[key]);
+        Object.keys(prescription)
+            .forEach(key => result[key] = prescription[key]);
 
-        const c = { COMPOSITION: composition, IOR: refractionIndex, FRAME_ID: props.frameID };
+        const c = { COMPOSITION: composition, IOR: refractionIndex, FRAME_ID: frameID };
 
         Object.keys(c)
             .forEach(key => result[key] = c[key]);
 
-        const prescription = JSON.stringify(result);
+        const prescriptionJson = JSON.stringify(result);
         const response = await fetch("http://127.0.0.1:5100/prescription", {
             method: "POST",
             mode: 'cors',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: prescription
+            body: prescriptionJson
         })
         if (response.ok) {
-            props.setCurrentView('visualizeOptions')
+            navigate('/visualize-options');
         } else {
             console.error('An error occurred:', response.statusText);
         }
@@ -46,18 +64,18 @@ export function LensFrameSelection(props) {
 
     return (
         <>
-            <Header setCurrentView={props.setCurrentView} />
+            <Header />
             <Flex direction='column' pt='2.5em' pl='3em' pr='13em' gap='1em' >
                 <Flex align='center' gap='1em'>
                     <ActionIcon
                         variant="transparent" color="rgba(0, 0, 0, 1)" size="xl" aria-label="Settings"
                         onClick={() => {
-                            props.setCurrentView('home')
-                            props.setActive(0)
+                            navigate('/')
+                            setActive(0);
                         }}>
                         <IconChevronLeft style={{ width: '80%', height: '80%' }} stroke={1.5} />
                     </ActionIcon>
-                    <StepperBar active={props.active}></StepperBar>
+                    <StepperBar active={active}></StepperBar>
                 </Flex>
                 <Title order={2} pl='2.5em'>Select Lens Material</Title>
                 <Flex align='center' gap='1em'>
@@ -67,18 +85,18 @@ export function LensFrameSelection(props) {
                         searchable
                         label=''
                         data={[
-                            { group: 'Plastic', items: props.plasticMaterials },
-                            { group: 'Glass', items: props.glassMaterials },
+                            { group: 'Plastic', items: plasticMaterials },
+                            { group: 'Glass', items: glassMaterials },
                         ]}
-                        placeholder={props.plasticMaterials[0]}
-                        value={props.material}
+                        placeholder={plasticMaterials[0]}
+                        value={material}
                         radius='0.25em'
-                        onChange={(value) => props.setMaterial(value)}></Select>
+                        onChange={(value) => setMaterial(value)}></Select>
                     <Popover width={500} position="bottom" withArrow shadow="md">
                         <Popover.Target>
                             <ActionIcon
                                 variant="transparent" color="rgba(0, 0, 0, 0.6)" size="xl" aria-label="Settings"
-                                onClick={() => props.setCurrentView('home')}>
+                                onClick={() => navigate('/')}>
                                 <IconHelpCircle style={{ width: '80%', height: '80%' }} stroke={1.5} />
                             </ActionIcon>
                         </Popover.Target>
@@ -99,9 +117,9 @@ export function LensFrameSelection(props) {
                         px='4em'
                         style={{ maxWidth: '75em' }}
                     >
-                        {props.frames.map((frame) => (
+                        {frames.map((frame) => (
                             <Carousel.Slide key={frame.id}>
-                                <FrameCard frame={frame} frames={props.frames} frameID={props.frameID} setFrameID={props.setFrameID} setValid={setValid} />
+                                <FrameCard frame={frame} frames={frames} frameID={frameID} setFrameID={setFrameID} setValid={setValid} />
                             </Carousel.Slide>
                         ))}
                     </Carousel>
