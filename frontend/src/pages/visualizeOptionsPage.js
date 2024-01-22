@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, Flex, ActionIcon, Title, Paper, Button, Popover, Table, Divider } from '@mantine/core';
 import { Header } from '../components/header'
 import { IconChevronLeft, IconListCheck } from '@tabler/icons-react';
@@ -9,7 +9,41 @@ import { AppStateContext } from './AppStateContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { respondToBrowserState } from './homePage';
 
+
+
 export function VisualizeOptionsPage(props) {
+
+    //weights found on https://www.eyebuydirect.ca/
+    //weight is in grams
+    let frameWeights = {
+        "Ray Ban Round Metal": 11,
+        "Ray Ban Aviator Classic": 12,
+        "Ray Ban Wayfarer Ease": 25
+    };
+
+    const [lensWeight, setLensWeight] = useState(null);
+
+    // Function to fetch lens weight
+    useEffect(() => {
+        async function fetchLensWeight() {
+            try {
+                const response = await fetch('http://localhost:5100/get-weight?' + String(Date.now()));
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const weight = await response.text();
+                setLensWeight(parseFloat(weight));
+            } catch (error) {
+                console.error('Error fetching lens weight:', error);
+                // Handle error or set a default value
+                setLensWeight(0); // Example: setting to 0 on error
+            }
+        }
+
+        fetchLensWeight();
+    }, []);
+
+
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -26,11 +60,7 @@ export function VisualizeOptionsPage(props) {
       } = React.useContext(AppStateContext);
 
     const frameName = frames.find(frame => frame.id === frameID).name;
-    const weight = {
-        lens: 70,
-        frame: 210,
-        combined: 280,
-    }
+
     const {
         SPH_OD, SPH_OS, CYL_OD, CYL_OS, AXIS_OD, AXIS_OS, PD
     } = prescription;
@@ -113,11 +143,11 @@ export function VisualizeOptionsPage(props) {
                             WEIGHT
                         </Text>
                         <Text fw={600} size='md' mt='5em'> Lens Only</Text>
-                        <Text fw={400} size='md' mt='.5em'> {weight.lens}g</Text>
+                        <Text fw={400} size='md' mt='.5em'> {lensWeight ? lensWeight.toFixed(2) : lensWeight}g</Text>
                         <Text fw={600} size='md' mt='3em'> Frames Only</Text>
-                        <Text fw={400} size='md' mt='.5em'> {weight.frame}g</Text>
+                        <Text fw={400} size='md' mt='.5em'> {(frameWeights[frameName]).toFixed(2)}g</Text>
                         <Text fw={600} size='md' mt='3em'> Combined </Text>
-                        <Text fw={400} size='md' mt='.5em'> {weight.combined}g</Text>
+                        <Text fw={400} size='md' mt='.5em'> {(frameWeights[frameName] + lensWeight).toFixed(2)}g</Text>
                     </Paper>
                 </Flex>
             </Flex>

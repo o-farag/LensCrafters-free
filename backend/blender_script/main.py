@@ -1,4 +1,5 @@
 import bpy
+import bmesh
 import random
 import sys
 import os
@@ -8,6 +9,28 @@ from math import radians
 module_dir = os.path.dirname(__file__)
 sys.path.append(module_dir)
 from lens import Lens, LensPrescription, Prescription
+
+
+
+#densities are g per cubic meter
+# some densities taken from https://en.wikipedia.org/wiki/Corrective_lens
+IOR_Densities = {'Standard Plastic1.5': 1390000, 
+                 'Polycarbonate1.59': 1200000, 
+                 'High-index Plastic1.57': 1270000, 
+                 'High-index Plastic1.67': 1370000, 
+                 'High-index Plastic1.74': 1470000, 
+                 'Crown Glass1.52': 2590000, 
+                 'Flint Glass1.6': 4400000}
+
+def calculate_weight(obj, density):
+    # Create a bmesh from the object's mesh data
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    # Calculate the volume
+    volume = bm.calc_volume(signed=True)
+    # Free the bmesh
+    bm.free()
+    return volume * density
 
 def insetLens():
 
@@ -58,7 +81,7 @@ def insetLens():
         lenscutter.select_set(False)
 
 # initialize empty scene and spawn a lens in it with given parameters
-def startup(SPHR, SPHL, CYLR, CYLL, AXISR, AXISL, IOR, frame, PD):
+def startup(SPHR, SPHL, CYLR, CYLL, AXISR, AXISL, IOR, frame, PD, MATERIAL):
     bpy.app.debug_wm = True
 
     # spawn a lens pair
@@ -75,6 +98,17 @@ def startup(SPHR, SPHL, CYLR, CYLL, AXISR, AXISL, IOR, frame, PD):
     lens_objects = bpy.context.scene.objects[-2:]
     lens_objects[0].name = "Lens_1"
     lens_objects[1].name = "Lens_2"
+    print(MATERIAL)
+    print(str(MATERIAL) + str(IOR))
+    
+    lens1Weight = calculate_weight(lens_objects[0], IOR_Densities[str(MATERIAL) + str(IOR)])
+    lens2Weight = calculate_weight(lens_objects[1], IOR_Densities[str(MATERIAL) + str(IOR)])
+    print(lens1Weight)
+    print(lens2Weight)
+    with open('backend/lensWeight', 'w') as file:
+    # Write the float value to the file
+        file.write(str(round(lens1Weight+lens2Weight, 2)))
+    #weightFile = open("weights.csv", "w")
 
     insetLens()
     # Export lens pair
@@ -131,7 +165,7 @@ if __name__ == "__main__":
     print(sys.argv)
     if len(sys.argv) < 10:
         print('shouldnt be here')
-        startup(0.5, 0.5, 0, 0, 0, 0, 1.5, "aviator", 64)
+        startup(0.5, 0.5, 0, 0, 0, 0, 1.5, "aviator", 64, "Standard Plastic - 1.5")
     else:
         file_path = "backend/models/"+str(sys.argv[8])+"_inset.blend"
         bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -144,5 +178,6 @@ if __name__ == "__main__":
                 float(sys.argv[6]), #AXISL
                 float(sys.argv[7]), #IOR
                 sys.argv[8], #frame
-                float(sys.argv[9]) #PD
+                float(sys.argv[9]), #PD
+                sys.argv[10] #MATERIAL
                 )
