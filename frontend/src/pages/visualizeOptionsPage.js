@@ -143,9 +143,9 @@ export function VisualizeOptionsPage(props) {
                             WEIGHT
                         </Text>
                         <Text fw={600} size='md' mt='5em'> Lens Only</Text>
-                        <Text fw={400} size='md' mt='.5em'> {lensWeight}g</Text>
+                        <Text fw={400} size='md' mt='.5em'> {lensWeight ? lensWeight.toFixed(2) : lensWeight}g</Text>
                         <Text fw={600} size='md' mt='3em'> Frames Only</Text>
-                        <Text fw={400} size='md' mt='.5em'> {frameWeights[frameName]}g</Text>
+                        <Text fw={400} size='md' mt='.5em'> {(frameWeights[frameName]).toFixed(2)}g</Text>
                         <Text fw={600} size='md' mt='3em'> Combined </Text>
                         <Text fw={400} size='md' mt='.5em'> {(frameWeights[frameName] + lensWeight).toFixed(2)}g</Text>
                     </Paper>

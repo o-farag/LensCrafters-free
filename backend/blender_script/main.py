@@ -14,13 +14,13 @@ from lens import Lens, LensPrescription, Prescription
 
 #densities are g per cubic meter
 # some densities taken from https://en.wikipedia.org/wiki/Corrective_lens
-IOR_Densities = {'Standard Plastic': 1390000, 
-                 'Polycarbonate': 1200000, 
-                 'High-index Plastic': 1270000, 
-                 'High-index Plastic': 1370000, 
-                 'High-index Plastic': 1470000, 
-                 'Crown Glass': 2590000, 
-                 'Flint Glass': 4400000}
+IOR_Densities = {'Standard Plastic1.5': 1390000, 
+                 'Polycarbonate1.59': 1200000, 
+                 'High-index Plastic1.57': 1270000, 
+                 'High-index Plastic1.67': 1370000, 
+                 'High-index Plastic1.74': 1470000, 
+                 'Crown Glass1.52': 2590000, 
+                 'Flint Glass1.6': 4400000}
 
 def calculate_weight(obj, density):
     # Create a bmesh from the object's mesh data
@@ -99,10 +99,10 @@ def startup(SPHR, SPHL, CYLR, CYLL, AXISR, AXISL, IOR, frame, PD, MATERIAL):
     lens_objects[0].name = "Lens_1"
     lens_objects[1].name = "Lens_2"
     print(MATERIAL)
-    print(IOR_Densities[MATERIAL])
+    print(str(MATERIAL) + str(IOR))
     
-    lens1Weight = calculate_weight(lens_objects[0], IOR_Densities[MATERIAL])
-    lens2Weight = calculate_weight(lens_objects[1], IOR_Densities[MATERIAL])
+    lens1Weight = calculate_weight(lens_objects[0], IOR_Densities[str(MATERIAL) + str(IOR)])
+    lens2Weight = calculate_weight(lens_objects[1], IOR_Densities[str(MATERIAL) + str(IOR)])
     print(lens1Weight)
     print(lens2Weight)
     with open('backend/lensWeight', 'w') as file:
