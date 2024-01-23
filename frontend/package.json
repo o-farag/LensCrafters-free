@@ -8,12 +8,15 @@
     "@mantine/carousel": "^7.1.2",
     "@mantine/core": "^7.0.0",
     "@mantine/hooks": "^7.0.0",
+    "@react-three/fiber": "^8.15.14",
     "@tabler/icons-react": "^2.35.0",
     "embla-carousel-react": "^7.0.0",
+    "facefilter": "^3.3.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.21.1",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "three": "^0.160.1"
   },
   "scripts": {
     "start": "react-scripts start",

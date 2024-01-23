@@ -4,10 +4,12 @@ import { IconView360, IconCamera } from '@tabler/icons-react';
 import viewer_thumbnail from '../resources/viewer_thumbnail.png';
 import try_on_thumbnail from '../resources/try_on_thumbnail.png';
 import { useNavigate } from 'react-router-dom';
+import { TryOnViewer } from './tryOnViewer';
 
 export function VisualizeCard(props) {
     const [opened3D, setOpened3D] = React.useState(false);
     const [showFrame, setShowFrame] = React.useState(true);
+    const modalRef = React.useRef(null);
     const navigate = useNavigate();
 
     const model_viewer_style = {
@@ -54,7 +56,7 @@ export function VisualizeCard(props) {
                 <Modal opened={opened3D} onClose={() => setOpened3D(false)} size='70em' radius='1' padding='0'>
                     {
                         <Stack padding='0' gap='0'>
-                            <model-viewer style={model_viewer_style} src={showFrame? lensAndFrameUrl : lensUrl} camera-controls auto-rotate />
+                            <model-viewer style={model_viewer_style} src={showFrame ? lensAndFrameUrl : lensUrl} camera-controls auto-rotate />
                             <Flex align='center' justify='space-between' bg='#e0ddd7' h='4em' w='100%' gap='sm' px='1em'>
                                 <Text size='sm' fs='italic' padding='1em'>Lens material: {props.material}</Text>
                                 <Flex align='center' gap='md'>
@@ -68,7 +70,18 @@ export function VisualizeCard(props) {
                     }
                 </Modal>
                 :
-                <></>}
+                <Modal.Root opened={opened3D} onClose={() => setOpened3D(false)} size='70em' radius='1' padding='0'>
+                    <Modal.Overlay />
+                    <Modal.Content>
+                        <Modal.Body>
+                            {
+                                <Stack padding='0' gap='0' ref={modalRef}>
+                                    <TryOnViewer opened={opened3D} modalRef={modalRef} material={props.material} frameName={props.frameName} />
+                                </Stack>
+                            }
+                        </Modal.Body>
+                    </Modal.Content>
+                </Modal.Root>}
 
         </>
 

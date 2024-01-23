@@ -48,7 +48,7 @@ export function VisualizeOptionsPage(props) {
     const location = useLocation();
 
     React.useEffect(() => {
-      setActive(respondToBrowserState(location));
+        setActive(respondToBrowserState(location));
     });
 
     const {
@@ -57,7 +57,7 @@ export function VisualizeOptionsPage(props) {
         frameID,
         active, setActive,
         frames
-      } = React.useContext(AppStateContext);
+    } = React.useContext(AppStateContext);
 
     const frameName = frames.find(frame => frame.id === frameID).name;
 
@@ -135,9 +135,13 @@ export function VisualizeOptionsPage(props) {
                     <VisualizeCard title='3D Interactive Viewer'
                         description='View the 3D model of the lenses and frames you’ve selected in detail by panning and zooming in the viewer window'
                         material={material}
-                        frameName={frameName}></VisualizeCard>
-                    <VisualizeCard title='Virtual Try-on' description='Try on the lenses and frames you’ve selected virtually'
-                        material={material}></VisualizeCard>
+                        frameName={frameName}>
+                    </VisualizeCard>
+                    <VisualizeCard title='Virtual Try-on'
+                        description='Try on the lenses and frames you’ve selected virtually'
+                        material={material}
+                        frameName={frameName}>
+                    </VisualizeCard>
                     <Paper bg='#EAEFF3' radius='xl' w='10%' h='35em' align='center'>
                         <Text fw={700} size='1.2em' pt='4em'>
                             WEIGHT

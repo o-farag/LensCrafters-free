@@ -1,5 +1,8 @@
 /venv
 /backend/__pycache__
+/backend/models/generated.glb
+/backend/models/lensOnly.glb
+/backend/lensWeight
 *__pycache__
 *.blend
 *.blend1
