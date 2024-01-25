@@ -542,7 +542,7 @@ class Lens():
         
         # use generated mesh for adding cylinder power when power is not 0
         # TODO: change condition, cylinder is currently disabled
-        self.cyl1 == 0
+        self.cyl1 = 0
         if self.cyl1 != 0:
             # create cylinder with radius corresponding to correct cylinder power
             # cylinder is already object, so no need to set it to variable
