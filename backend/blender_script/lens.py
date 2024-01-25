@@ -23,6 +23,25 @@ class Prescription:
     pupillary_distance: float
     index_of_refraction: float = 1.5 # default ior value of glass
 
+    def find_base_curve(self, power: float):
+        base_curve = 5.0 # default value
+
+        if power <= -10:
+            base_curve = 0.5
+        elif -10 < power <= -5:
+            base_curve = 2.0
+        elif -5 < power <= -1:
+            base_curve = 4.0
+        elif -1 < power <= 2:
+            base_curve = 6.0
+        elif 2 < power <= 4:
+            base_curve = 8.0
+        elif power > 4:
+            base_curve = 10.0
+
+        return base_curve
+
+
     # convert a diopter value to a radius of sphere
     def convert_diopter_to_radius(self, diopter: float, ior: float):
         if diopter == 0.0:
@@ -38,20 +57,45 @@ class Prescription:
         # currently only supporting spherical power
         bridge_dist = self.pupillary_distance/(2*1000)
         lens_radius = radius
-        center_thickness = 0.005
+        center_thickness = 0 # set at 0, change if conditions don't permit 0 thickness. This minimizes thickness
         ior = self.index_of_refraction
 
         # left lens
         left_prescription = self.left_eye
         location = [0, bridge_dist + lens_radius, 0]  # y axis is horizontal
-        sphere_radius = self.convert_diopter_to_radius(diopter=left_prescription.sphere, 
-                                                ior=ior)
+
+        # figure out base curve, which is the power of the front surface of the lens
+        # the optimal base curve minimizes optical aberrations from lens 
+        base_curve_power = self.find_base_curve(left_prescription.sphere)
+        base_curve = self.convert_diopter_to_radius(diopter=base_curve_power, ior=ior)
+
+        # after finding base curve, compensate for it on the back surface
+        sphere_power = left_prescription.sphere
+        # if (base_curve - sphere_power) > 0: # this is generally true for positive powered lenses up to +10.0 D
+        sphere_power = sphere_power - base_curve_power #sphere power should be negative on back
+
+        print(left_prescription.sphere, base_curve_power, sphere_power)
+
+        sphere_radius = self.convert_diopter_to_radius(diopter=sphere_power, ior=ior)
         cylinder_radius = self.convert_diopter_to_radius(diopter=left_prescription.cylinder, ior=ior)
         cylinder_axis = left_prescription.axis
         
+       
 
-        left_lens = Lens(rad1=sphere_radius, 
-                         rad2=0,
+        # condition for checking center thickness, explanation below
+        '''
+        The smallest radius (highest power) the lens generator can make is equal to the lens radius. 
+        Otherwise the generator breaks and generates a flat lens. For example, if we have a lens radius of 3cm, 
+        then the radius of the front surface of the lens should be >=3cm, and same for the back surface. Otherwise
+        we can get away with setting center-thickness to 0, in which case the generator will find the smallest thickness
+        that accomodates both front and back power. 
+        '''
+        if (abs(sphere_radius - base_curve) < 0.005):
+            center_thickness = 0.0015 # 1.5mm
+        
+
+        left_lens = Lens(rad1=base_curve, # base curve goes on front surface
+                         rad2=sphere_radius,
                          cyl1=cylinder_radius,
                          axis1= cylinder_axis,
                          location=location, 
@@ -63,14 +107,29 @@ class Prescription:
         # right lens
         right_prescription = self.right_eye
         location = [0, -bridge_dist - lens_radius, 0]
-        sphere_radius = self.convert_diopter_to_radius(diopter=right_prescription.sphere, 
-                                                ior=ior)
+
+        base_curve_power = self.find_base_curve(right_prescription.sphere)
+        base_curve = self.convert_diopter_to_radius(diopter=base_curve_power, ior=ior)
+
+        # after finding base curve, compensate for it on the back surface
+        sphere_power = right_prescription.sphere
+        # if (base_curve - sphere_power) > 0: # this is generally true for positive powered lenses up to +10.0 D
+        sphere_power = sphere_power - base_curve_power #sphere power should be negative on back
+
+        print(right_prescription.sphere, base_curve_power, sphere_power)
+
+        sphere_radius = self.convert_diopter_to_radius(diopter=sphere_power, ior=ior)
         cylinder_radius = self.convert_diopter_to_radius(diopter=right_prescription.cylinder, ior=ior)
         cylinder_axis = right_prescription.axis
         
         
-        right_lens = Lens(rad1=sphere_radius, 
-                          rad2=0,
+        
+        
+        if (abs(sphere_radius - base_curve) < 0.005):
+            center_thickness = 0.0015 # 1.5mm
+        
+        right_lens = Lens(rad1=base_curve, 
+                          rad2=sphere_radius,
                           cyl1=cylinder_radius,
                           axis1=cylinder_axis, 
                           location=location, 
@@ -482,11 +541,13 @@ class Lens():
         bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)
         
         # use generated mesh for adding cylinder power when power is not 0
+        # TODO: change condition, cylinder is currently disabled
+        self.cyl1 == 0
         if self.cyl1 != 0:
             # create cylinder with radius corresponding to correct cylinder power
             # cylinder is already object, so no need to set it to variable
             bpy.ops.mesh.primitive_cylinder_add(
-                            vertices = 512, # need a lot of vertices for smooth curve
+                            vertices = 2048, # need a lot of vertices for smooth curve
                             radius = abs(self.cyl1), # abs for positive value
                             end_fill_type = 'TRIFAN'
             )
@@ -497,7 +558,8 @@ class Lens():
             # align cylinder with middle of lens, align front or back surface
             offset = self.location # offset for each lens's location
 
-            cyl.location = [-self.cyl1 - self.centerthickness/2, 0, 0] # for now align with back surface
+            dimensions = obj.dimensions
+            cyl.location = [-self.cyl1 - dimensions.x/2, 0, 0] # for now align with back surface
             
             cyl.rotation_euler = [np.radians(self.axis1), 0, 0]
 
@@ -508,16 +570,16 @@ class Lens():
             bool_mod.solver = 'EXACT'
             
             # remesh modifier for smoother, higher poly lens
-            remesh_mod = obj.modifiers.new(name="Remesh", type='REMESH')
-            remesh_mod.mode = 'SHARP'
-            remesh_mod.octree_depth = 7
-            remesh_mod.scale = 0.99
+            # remesh_mod = obj.modifiers.new(name="Remesh", type='REMESH')
+            # remesh_mod.mode = 'SHARP'
+            # remesh_mod.octree_depth = 7
+            # remesh_mod.scale = 0.99
 
             # apply modifiers
             # obj.select_set(True)
             bpy.context.view_layer.objects.active = obj
             bpy.ops.object.modifier_apply(modifier="Boolean")
-            bpy.ops.object.modifier_apply(modifier="Remesh")
+            # bpy.ops.object.modifier_apply(modifier="Remesh")
 
             # after applying modifiers, move cylinders to align with left/right lens positions
             cyl.location[0] += offset[0]
