@@ -66,21 +66,21 @@ class Prescription:
 
         # figure out base curve, which is the power of the front surface of the lens
         # the optimal base curve minimizes optical aberrations from lens 
-        base_curve_power = self.find_base_curve(left_prescription.sphere)
-        base_curve = self.convert_diopter_to_radius(diopter=base_curve_power, ior=ior)
+
+        base_curve_power_left = self.find_base_curve(left_prescription.sphere)
+        base_curve_left_r = self.convert_diopter_to_radius(diopter=base_curve_power_left, ior=ior)
 
         # after finding base curve, compensate for it on the back surface
         sphere_power = left_prescription.sphere
-        # if (base_curve - sphere_power) > 0: # this is generally true for positive powered lenses up to +10.0 D
-        sphere_power = sphere_power - base_curve_power #sphere power should be negative on back
+        sphere_power_bc = sphere_power - base_curve_power_left 
 
-        print(left_prescription.sphere, base_curve_power, sphere_power)
-
+        # print(left_prescription.sphere, base_curve_power, sphere_power)
+        sphere_radius_bc = self.convert_diopter_to_radius(diopter=sphere_power_bc, ior=ior)
         sphere_radius = self.convert_diopter_to_radius(diopter=sphere_power, ior=ior)
+
         cylinder_radius = self.convert_diopter_to_radius(diopter=left_prescription.cylinder, ior=ior)
         cylinder_axis = left_prescription.axis
         
-       
 
         # condition for checking center thickness, explanation below
         '''
@@ -90,52 +90,77 @@ class Prescription:
         we can get away with setting center-thickness to 0, in which case the generator will find the smallest thickness
         that accomodates both front and back power. 
         '''
-        if (abs(sphere_radius - base_curve) < 0.005):
+        if (abs(sphere_radius - base_curve_left_r) < 0.005):
             center_thickness = 0.0015 # 1.5mm
         
-
-        left_lens = Lens(rad1=base_curve, # base curve goes on front surface
-                         rad2=sphere_radius,
-                         cyl1=cylinder_radius,
-                         axis1= cylinder_axis,
-                         location=location, 
-                         lensradius=lens_radius, 
-                         centerthickness=center_thickness, 
-                         ior=ior)
+        if (left_prescription.cylinder == 0):
+            # use base curve
+            print("Using base curve")
+            left_lens = Lens(rad1=base_curve_left_r, # base curve goes on front surface
+                            rad2=sphere_radius_bc,
+                            cyl1=0,
+                            axis1= cylinder_axis,
+                            location=location, 
+                            lensradius=lens_radius, 
+                            centerthickness=center_thickness, 
+                            ior=ior)
+        else:
+            # don't use base curve
+            left_lens = Lens(rad1=sphere_radius, # base curve goes on front surface
+                            rad2=0,
+                            cyl1=cylinder_radius,
+                            axis1= cylinder_axis,
+                            location=location, 
+                            lensradius=lens_radius, 
+                            centerthickness=0.01, 
+                            ior=ior)
+            
         left_lens.add_lens(context=context)
+        
         
         # right lens
         right_prescription = self.right_eye
         location = [0, -bridge_dist - lens_radius, 0]
 
-        base_curve_power = self.find_base_curve(right_prescription.sphere)
-        base_curve = self.convert_diopter_to_radius(diopter=base_curve_power, ior=ior)
+        base_curve_power_right = self.find_base_curve(right_prescription.sphere)
+        base_curve_right = self.convert_diopter_to_radius(diopter=base_curve_power_right, ior=ior)
 
         # after finding base curve, compensate for it on the back surface
         sphere_power = right_prescription.sphere
-        # if (base_curve - sphere_power) > 0: # this is generally true for positive powered lenses up to +10.0 D
-        sphere_power = sphere_power - base_curve_power #sphere power should be negative on back
+        sphere_power_bc = sphere_power - base_curve_power_right 
 
-        print(right_prescription.sphere, base_curve_power, sphere_power)
-
+        # print(left_prescription.sphere, base_curve_power, sphere_power)
+        sphere_radius_bc = self.convert_diopter_to_radius(diopter=sphere_power_bc, ior=ior)
         sphere_radius = self.convert_diopter_to_radius(diopter=sphere_power, ior=ior)
+
         cylinder_radius = self.convert_diopter_to_radius(diopter=right_prescription.cylinder, ior=ior)
         cylinder_axis = right_prescription.axis
         
-        
-        
-        
-        if (abs(sphere_radius - base_curve) < 0.005):
+        if (abs(sphere_radius - base_curve_right) < 0.005):
             center_thickness = 0.0015 # 1.5mm
         
-        right_lens = Lens(rad1=base_curve, 
-                          rad2=sphere_radius,
-                          cyl1=cylinder_radius,
-                          axis1=cylinder_axis, 
-                          location=location, 
-                          lensradius=lens_radius, 
-                          centerthickness=center_thickness, 
-                          ior=ior)
+        if (right_prescription.cylinder == 0):
+            # use base curve
+            print("Using base curve")
+            right_lens = Lens(rad1=base_curve_right, 
+                            rad2=sphere_radius_bc,
+                            cyl1=0,
+                            axis1=0, 
+                            location=location, 
+                            lensradius=lens_radius, 
+                            centerthickness=center_thickness, 
+                            ior=ior)
+        else:
+            # don't use base curve
+            right_lens = Lens(rad1=sphere_radius, 
+                            rad2=0,
+                            cyl1=cylinder_radius,
+                            axis1=cylinder_axis, 
+                            location=location, 
+                            lensradius=lens_radius, 
+                            centerthickness=0.01, 
+                            ior=ior)
+            
         right_lens.add_lens(context=context)
 
         lenses = [left_lens, right_lens]
@@ -541,8 +566,8 @@ class Lens():
         bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)
         
         # use generated mesh for adding cylinder power when power is not 0
-        # TODO: change condition, cylinder is currently disabled
-        self.cyl1 = 0
+        
+        # self.cyl1 = 0
         if self.cyl1 != 0:
             # create cylinder with radius corresponding to correct cylinder power
             # cylinder is already object, so no need to set it to variable
