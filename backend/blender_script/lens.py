@@ -97,7 +97,7 @@ class Prescription:
             # use base curve
             print("Using base curve")
             left_lens = Lens(rad1=base_curve_left_r, # base curve goes on front surface
-                            rad2=sphere_radius_bc,
+                            rad2= -sphere_radius_bc,
                             cyl1=0,
                             axis1= cylinder_axis,
                             location=location, 
@@ -143,7 +143,7 @@ class Prescription:
             # use base curve
             print("Using base curve")
             right_lens = Lens(rad1=base_curve_right, 
-                            rad2=sphere_radius_bc,
+                            rad2= -sphere_radius_bc,
                             cyl1=0,
                             axis1=0, 
                             location=location, 
@@ -584,7 +584,7 @@ class Lens():
             offset = self.location # offset for each lens's location
 
             dimensions = obj.dimensions
-            cyl.location = [-self.cyl1 - dimensions.x/2, 0, 0] # for now align with back surface
+            cyl.location = [-self.cyl1 - self.centerthickness/2, 0, 0] # for now align with back surface
             
             cyl.rotation_euler = [np.radians(self.axis1), 0, 0]
 
