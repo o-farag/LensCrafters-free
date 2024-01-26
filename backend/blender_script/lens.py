@@ -112,7 +112,7 @@ class Prescription:
                             axis1= cylinder_axis,
                             location=location, 
                             lensradius=lens_radius, 
-                            centerthickness=0.01, 
+                            centerthickness=0.005, 
                             ior=ior)
             
         left_lens.add_lens(context=context)
@@ -158,7 +158,7 @@ class Prescription:
                             axis1=cylinder_axis, 
                             location=location, 
                             lensradius=lens_radius, 
-                            centerthickness=0.01, 
+                            centerthickness=0.005, 
                             ior=ior)
             
         right_lens.add_lens(context=context)
