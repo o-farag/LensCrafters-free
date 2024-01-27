@@ -92,6 +92,8 @@ class Prescription:
         '''
         if (abs(sphere_radius - base_curve_left_r) < 0.005):
             center_thickness = 0.0015 # 1.5mm
+        elif (sphere_radius == 0):
+            center_thickness = 0.0015 # 1.5mm
         
         if (left_prescription.cylinder == 0):
             # use base curve
@@ -123,7 +125,7 @@ class Prescription:
         location = [0, -bridge_dist - lens_radius, 0]
 
         base_curve_power_right = self.find_base_curve(right_prescription.sphere)
-        base_curve_right = self.convert_diopter_to_radius(diopter=base_curve_power_right, ior=ior)
+        base_curve_right_r = self.convert_diopter_to_radius(diopter=base_curve_power_right, ior=ior)
 
         # after finding base curve, compensate for it on the back surface
         sphere_power = right_prescription.sphere
@@ -136,13 +138,15 @@ class Prescription:
         cylinder_radius = self.convert_diopter_to_radius(diopter=right_prescription.cylinder, ior=ior)
         cylinder_axis = right_prescription.axis
         
-        if (abs(sphere_radius - base_curve_right) < 0.005):
+        if (abs(sphere_radius - base_curve_right_r) < 0.005):
+            center_thickness = 0.0015 # 1.5mm
+        elif (sphere_radius == 0):
             center_thickness = 0.0015 # 1.5mm
         
         if (right_prescription.cylinder == 0):
             # use base curve
             print("Using base curve")
-            right_lens = Lens(rad1=base_curve_right, 
+            right_lens = Lens(rad1=base_curve_right_r, 
                             rad2= -sphere_radius_bc,
                             cyl1=0,
                             axis1=0, 
