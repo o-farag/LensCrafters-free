@@ -4,10 +4,11 @@
   "private": true,
   "dependencies": {
     "@fontsource/inter": "^5.0.15",
-    "@google/model-viewer": "^3.2.1",
+    "@google/model-viewer": "^3.4.0",
     "@mantine/carousel": "^7.1.2",
     "@mantine/core": "^7.0.0",
     "@mantine/hooks": "^7.0.0",
+    "@react-three/drei": "^9.97.0",
     "@react-three/fiber": "^8.15.14",
     "@tabler/icons-react": "^2.35.0",
     "embla-carousel-react": "^7.0.0",
